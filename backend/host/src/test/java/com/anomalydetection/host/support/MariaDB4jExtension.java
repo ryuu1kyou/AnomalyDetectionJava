@@ -30,9 +30,16 @@ public class MariaDB4jExtension implements BeforeAllCallback, AfterAllCallback {
       sharedDb = DB.newEmbeddedDB(configBuilder.build());
       sharedDb.start();
       sharedDb.createDB(DATABASE_NAME);
-      sharedJdbcUrl =
-          configBuilder.getURL(DATABASE_NAME)
-              + "?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=UTC";
+
+      // MariaDB4j のデフォルト URL は jdbc:mariadb://...
+      // Spring Boot の auto-detect driver が org.mariadb.jdbc.Driver を要求するのを避けるため、
+      // テストでは MySQL driver (mysql-connector-j) で接続できる jdbc:mysql://... に寄せる。
+      String url = configBuilder.getURL(DATABASE_NAME);
+      if (url.startsWith("jdbc:mariadb://")) {
+        url = url.replaceFirst("jdbc:mariadb://", "jdbc:mysql://");
+      }
+
+      sharedJdbcUrl = url + "?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=UTC";
       System.setProperty("TEST_DB_URL", sharedJdbcUrl);
     }
   }
