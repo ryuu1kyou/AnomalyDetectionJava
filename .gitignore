@@ -1,0 +1,43 @@
+# Java / Maven
+target/
+*.class
+*.jar
+*.war
+*.ear
+*.log
+
+# Maven Wrapper
+!.mvn/wrapper/maven-wrapper.jar
+.mvn/wrapper/MavenWrapperDownloader.java
+
+# IDE
+.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/
+.classpath
+.project
+.settings/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Frontend (将来用)
+node_modules/
+dist/
+.cache/
+.parcel-cache/
+*.tsbuildinfo
+.env
+.env.local
+
+# Logs
+logs/
+
+# MariaDB4j テンポラリ
+target/mariadb4j/
+
+# Liquibase ローカル lock
+db.lck
