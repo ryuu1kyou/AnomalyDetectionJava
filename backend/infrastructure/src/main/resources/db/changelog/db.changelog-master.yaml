@@ -1,0 +1,3 @@
+databaseChangeLog:
+  # M0 baseline — empty master. Domain changelogs will be included from M1 onwards.
+  - logicalFilePath: db/changelog/db.changelog-master.yaml
