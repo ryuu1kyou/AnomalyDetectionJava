@@ -108,42 +108,91 @@ export const projectsApi = {
 
   // ---- Milestones (mock) ----
   async getMilestones(projectId: string): Promise<ProjectMilestone[]> {
-    void projectId
-    return []
+    try {
+      return await fetchJson<ProjectMilestone[]>(
+        `${API_BASE_PATH}/${encodeURIComponent(projectId)}/milestones`
+      )
+    } catch {
+      return []
+    }
   },
   async createMilestone(input: CreateProjectMilestoneDto): Promise<ProjectMilestone> {
-    void input
-    throw new Error('Not implemented (mock)')
+    const res = await fetch(`${BACKEND_BASE_URL}${API_BASE_PATH}/milestones`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(input),
+    })
+    if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`)
+    return (await res.json()) as ProjectMilestone
   },
   async updateMilestone(
     milestoneId: string,
     input: UpdateProjectMilestoneDto
   ): Promise<ProjectMilestone> {
-    void milestoneId
-    void input
-    throw new Error('Not implemented (mock)')
+    const res = await fetch(
+      `${BACKEND_BASE_URL}${API_BASE_PATH}/milestones/${encodeURIComponent(milestoneId)}`,
+      {
+        method: 'PUT',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(input),
+      }
+    )
+    if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`)
+    return (await res.json()) as ProjectMilestone
   },
   async deleteMilestone(milestoneId: string): Promise<void> {
-    void milestoneId
-    throw new Error('Not implemented (mock)')
+    const res = await fetch(
+      `${BACKEND_BASE_URL}${API_BASE_PATH}/milestones/${encodeURIComponent(milestoneId)}`,
+      { method: 'DELETE' }
+    )
+    if (!res.ok && res.status !== 204) throw new Error(`HTTP ${res.status} ${res.statusText}`)
+  },
+
+  async completeMilestone(milestoneId: string): Promise<ProjectMilestone> {
+    const res = await fetch(
+      `${BACKEND_BASE_URL}${API_BASE_PATH}/milestones/${encodeURIComponent(milestoneId)}/complete`,
+      { method: 'POST' }
+    )
+    if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`)
+    return (await res.json()) as ProjectMilestone
   },
 
   // ---- Members (mock) ----
   async getMembers(projectId: string): Promise<ProjectMember[]> {
-    void projectId
-    return []
+    try {
+      return await fetchJson<ProjectMember[]>(
+        `${API_BASE_PATH}/${encodeURIComponent(projectId)}/members`
+      )
+    } catch {
+      return []
+    }
   },
   async addMember(input: CreateProjectMemberDto): Promise<ProjectMember> {
-    void input
-    throw new Error('Not implemented (mock)')
+    const res = await fetch(`${BACKEND_BASE_URL}${API_BASE_PATH}/members`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(input),
+    })
+    if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`)
+    return (await res.json()) as ProjectMember
   },
   async updateMember(memberId: string, input: UpdateProjectMemberDto): Promise<ProjectMember> {
-    void memberId
-    void input
-    throw new Error('Not implemented (mock)')
+    const res = await fetch(
+      `${BACKEND_BASE_URL}${API_BASE_PATH}/members/${encodeURIComponent(memberId)}`,
+      {
+        method: 'PUT',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(input),
+      }
+    )
+    if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`)
+    return (await res.json()) as ProjectMember
   },
   async removeMember(memberId: string): Promise<void> {
-    void memberId
-    throw new Error('Not implemented (mock)')
+    const res = await fetch(
+      `${BACKEND_BASE_URL}${API_BASE_PATH}/members/${encodeURIComponent(memberId)}`,
+      { method: 'DELETE' }
+    )
+    if (!res.ok && res.status !== 204) throw new Error(`HTTP ${res.status} ${res.statusText}`)
   },
 }
