@@ -1,0 +1,33 @@
+spring:
+  application:
+    name: anomaly-detection
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+        format_sql: false
+  liquibase:
+    enabled: true
+    change-log: classpath:db/changelog/db.changelog-master.yaml
+
+server:
+  port: 44397
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info
+  endpoint:
+    health:
+      show-details: when-authorized
+      probes:
+        enabled: true
+
+logging:
+  level:
+    root: INFO
+    com.anomalydetection: INFO

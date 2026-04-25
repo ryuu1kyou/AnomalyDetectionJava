@@ -1,0 +1,15 @@
+# MariaDB4j 用設定。ポートは MariaDB4jExtension が動的に注入する。
+spring:
+  datasource:
+    url: ${TEST_DB_URL:jdbc:mysql://localhost:0/test}
+    username: root
+    password: ""
+  jpa:
+    show-sql: false
+  liquibase:
+    enabled: true
+
+logging:
+  level:
+    com.anomalydetection: DEBUG
+    liquibase: INFO
