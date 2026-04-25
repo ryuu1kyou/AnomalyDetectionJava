@@ -20,7 +20,7 @@ import { Link } from 'react-router-dom'
 import dayjs from 'dayjs'
 import { projectsApi } from '../api/projectsApi'
 import { ProjectPriority, ProjectStatus } from '../models/project'
-import type { Project, ProjectsQuery } from '../models/project'
+import type { GetProjectsInput, Project, ProjectsQuery } from '../models/project'
 
 function statusLabel(status: ProjectStatus): string {
   switch (status) {
@@ -71,6 +71,11 @@ export default function ProjectListPage() {
   const [selectedRowKeys, setSelectedRowKeys] = useState<Key[]>([])
   const [loading, setLoading] = useState(false)
   const [data, setData] = useState<Project[]>([])
+  const [totalCount, setTotalCount] = useState(0)
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
+  const [sortField, setSortField] = useState<string | undefined>('projectCode')
+  const [sortOrder, setSortOrder] = useState<'ascend' | 'descend' | null>('ascend')
   const debounceTimerRef = useRef<number | null>(null)
 
   const columns: ColumnsType<Project> = [
@@ -145,12 +150,37 @@ export default function ProjectListPage() {
     },
   ]
 
-  async function reload() {
+  async function reload(
+    opts: Partial<{
+      page: number
+      pageSize: number
+      sortField: string | undefined
+      sortOrder: 'ascend' | 'descend' | null
+    }> = {}
+  ) {
     setLoading(true)
     try {
       const values = form.getFieldsValue()
-      const rows = await projectsApi.list(values)
-      setData(rows)
+
+      const effectivePage = opts.page ?? page
+      const effectivePageSize = opts.pageSize ?? pageSize
+      const effectiveSortField = opts.sortField ?? sortField
+      const effectiveSortOrder = opts.sortOrder ?? sortOrder
+
+      const sorting = effectiveSortField
+        ? `${effectiveSortField} ${effectiveSortOrder === 'descend' ? 'desc' : 'asc'}`
+        : undefined
+
+      const input: GetProjectsInput = {
+        ...values,
+        skipCount: (effectivePage - 1) * effectivePageSize,
+        maxResultCount: effectivePageSize,
+        sorting,
+      }
+
+      const result = await projectsApi.getList(input)
+      setData(result.items)
+      setTotalCount(result.totalCount)
     } finally {
       setLoading(false)
     }
@@ -171,7 +201,7 @@ export default function ProjectListPage() {
   }
 
   const stats = useMemo(() => {
-    const totalProjects = data.length
+    const totalProjects = totalCount
     const activeProjects = data.filter(p => p.status === ProjectStatus.Active).length
     const completedProjects = data.filter(p => p.status === ProjectStatus.Completed).length
     const delayedProjects = data.filter(p => {
@@ -180,7 +210,7 @@ export default function ProjectListPage() {
     }).length
 
     return { totalProjects, activeProjects, completedProjects, delayedProjects }
-  }, [data])
+  }, [data, totalCount])
 
   return (
     <Space direction="vertical" size="large" style={{ display: 'flex' }}>
@@ -230,7 +260,8 @@ export default function ProjectListPage() {
               window.clearTimeout(debounceTimerRef.current)
             }
             debounceTimerRef.current = window.setTimeout(() => {
-              void reload()
+              setPage(1)
+              void reload({ page: 1 })
             }, 300)
           }}
         >
@@ -302,17 +333,43 @@ export default function ProjectListPage() {
             </Col>
           </Row>
         </Form>
-      </Card>
 
-      <Table
-        rowKey="id"
-        columns={columns}
-        loading={loading}
-        rowSelection={rowSelection}
-        dataSource={data}
-        pagination={{ pageSize: 10 }}
-        scroll={{ x: 1300 }}
-      />
+        <div style={{ marginTop: 12 }}>
+          <Table<Project>
+            rowKey="id"
+            columns={columns}
+            loading={loading}
+            rowSelection={rowSelection}
+            dataSource={data}
+            scroll={{ x: 1300 }}
+            onChange={(pagination, _filters, sorter) => {
+              const nextPage = pagination.current ?? 1
+              const nextPageSize = pagination.pageSize ?? 10
+
+              const nextSortField = !Array.isArray(sorter) ? (sorter.field ? String(sorter.field) : undefined) : undefined
+              const nextSortOrder = !Array.isArray(sorter) ? (sorter.order ?? null) : null
+
+              setPage(nextPage)
+              setPageSize(nextPageSize)
+              setSortField(nextSortField)
+              setSortOrder(nextSortOrder)
+
+              void reload({
+                page: nextPage,
+                pageSize: nextPageSize,
+                sortField: nextSortField,
+                sortOrder: nextSortOrder,
+              })
+            }}
+            pagination={{
+              current: page,
+              pageSize,
+              total: totalCount,
+              showSizeChanger: true,
+            }}
+          />
+        </div>
+      </Card>
     </Space>
   )
 }

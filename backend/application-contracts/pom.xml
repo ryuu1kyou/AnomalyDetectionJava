@@ -19,5 +19,11 @@
       <groupId>com.anomalydetection</groupId>
       <artifactId>anomaly-detection-domain</artifactId>
     </dependency>
+
+    <!-- JSON serialization annotations for DTOs (enums as numeric codes etc.) -->
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-annotations</artifactId>
+    </dependency>
   </dependencies>
 </project>
