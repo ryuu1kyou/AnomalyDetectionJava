@@ -155,14 +155,40 @@ application ──→ infrastructure ──→ host
 
 ## 5. 開発ステータス
 
+最終更新: 2026-04-25
+
+### 5.1 マイルストーン進捗
+
 | フェーズ | 状態 |
 | --- | --- |
 | ブレインストーミング (要件・前提整理) | **完了** |
 | 設計書 (spec) 執筆 | **完了** |
-| 実装計画 (plan) 作成 | **M0 完了** (M1〜M7 は順次) |
-| 実装 (TDD) | **M0 (基盤セットアップ) 完了** |
+| 実装計画 (plan) 作成 | M0 **完了** / M1〜M7 **未着手** |
+| **M0** (基盤セットアップ) | **完了** (tag: `m0-baseline`) |
+| **M1** (Identity + Multi-Tenancy) | **未着手** |
+| **M2** (Spring Authorization Server) | **未着手** |
+| **M3** (横断機能: Permissions / Settings / Features / Audit / Jobs / BLOB / i18n) | **未着手** |
+| **M4** (コアドメイン移植) | **Projects のみ in-memory mock 実装** (DDD レイヤー未経由・要 M1〜M3 完了後に本実装へ置換) |
+| **M5** (フロントエンド基盤) | **部分的** (Vite + React 19 + TS + Ant Design 6 + React Router 7 完了。Zustand / TanStack Query / oidc-client-ts / Zod + React Hook Form / OpenAPI 自動生成 **未追加**) |
+| **M6** (フロントエンド機能ページ) | **Projects 一覧/詳細のみ** (mock-first + backend-fallback) |
+| **M7** (システム/性能テスト) | **未着手** |
 
-### 5.1 将来課題 (今回スコープ外、後続で対応)
+### 5.2 設計上の留意事項 (技術的負債候補)
+
+以下は M0 完了後に Plan 順序を逸脱して前倒しした作業に伴う**暫定実装**であり、後続フェーズで本実装に置き換える必要があります。
+
+- `ProjectsAppService` の in-memory `List<ProjectDto>` 保持 → M1 完了後に **Domain Aggregate + JPA Repository** に置換 (現状 `domain/projects/` パッケージ自体が存在しない)
+- 全エンティティへの `tenant_id` カラム / Hibernate Filter / `TenantResolutionFilter` の後付け → M1 で全 Aggregate 改修
+- `@PreAuthorize` / `PermissionDefinitionContributor` の後付け → M3a (permissions) 完了後
+- Frontend に **Zustand / TanStack Query / oidc-client-ts / Zod + React Hook Form** を追加 → M5 本実装時
+- **OpenAPI 自動生成パイプライン** (`openapi-typescript-codegen`) を構築し、`projectsApi.ts` の手書き型を生成型へ置換 → M5 本実装時
+- `@types/react-router-dom` 5.3.3 の削除 (React Router 7 と不整合に同居) → 即時対応推奨
+
+### 5.3 進行順序の逸脱メモ
+
+Plan の正規順序は M0 → M1 → M2 → M3 → M4 → M5 → M6 → M7 ですが、現状は M0 完了後に **M5(部分) → M4(Projects mock) → M6(Projects 画面)** の順で前倒しが行われています。M1〜M3 (認証・マルチテナント・横断機能) を抜かしているため、Projects 関連の実装は本実装段階で広範な手直しが発生します。次に着手するときは原則どおり **M1 (Identity + Multi-Tenancy)** から進めるか、明示的に「Projects mock を捨てて M1 から再構築する」方針かを判断してください。
+
+### 5.4 将来課題 (今回スコープ外、後続で対応)
 
 - **Docker / docker-compose 構成** (個人開発のため当面はホスト直接実行)
 - **CI/CD パイプライン (GitHub Actions: `mvn verify` / ESLint / ビルド)**
@@ -174,4 +200,5 @@ application ──→ infrastructure ──→ host
 
 - 既存 .NET 版 README: [../AnomalyDetection/README.md](../AnomalyDetection/README.md)
 - 既存 .NET 版ソリューション: [../AnomalyDetection/AnomalyDetection.sln](../AnomalyDetection/AnomalyDetection.sln)
-- 設計書 (執筆中): [docs/superpowers/specs/](docs/superpowers/specs/)
+- 設計書: [docs/superpowers/specs/](docs/superpowers/specs/)
+- 実装計画 (M0): [docs/superpowers/plans/2026-04-25-m0-baseline-setup.md](docs/superpowers/plans/2026-04-25-m0-baseline-setup.md)
