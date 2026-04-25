@@ -1,8 +1,9 @@
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3306/anomaly_detection?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=UTC
+    url: jdbc:mysql://localhost:3306/anomaly_detection?useUnicode=true&characterEncoding=utf8&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
     username: root
-    password: root
+    # local dev default (override via env ANOMALY_DB_PASSWORD)
+    password: ${ANOMALY_DB_PASSWORD:123}
   jpa:
     show-sql: true
     properties:
