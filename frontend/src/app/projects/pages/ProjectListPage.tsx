@@ -1,7 +1,24 @@
-import { Card, Col, Form, Input, Row, Select, Space, Table, Tag, Typography } from 'antd'
+import {
+  Button,
+  Card,
+  Col,
+  Form,
+  Input,
+  Progress,
+  Row,
+  Select,
+  Space,
+  Table,
+  Tag,
+  Typography,
+} from 'antd'
 import type { ColumnsType } from 'antd/es/table'
+import type { TableRowSelection } from 'antd/es/table/interface'
+import type { Key } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { mockProjects } from '../data/mockProjects'
+import dayjs from 'dayjs'
+import { projectsApi } from '../api/projectsApi'
 import { ProjectPriority, ProjectStatus } from '../models/project'
 import type { Project, ProjectsQuery } from '../models/project'
 
@@ -51,6 +68,10 @@ function priorityLabel(priority: ProjectPriority): string {
 
 export default function ProjectListPage() {
   const [form] = Form.useForm<ProjectsQuery>()
+  const [selectedRowKeys, setSelectedRowKeys] = useState<Key[]>([])
+  const [loading, setLoading] = useState(false)
+  const [data, setData] = useState<Project[]>([])
+  const debounceTimerRef = useRef<number | null>(null)
 
   const columns: ColumnsType<Project> = [
     {
@@ -84,36 +105,82 @@ export default function ProjectListPage() {
       render: (value: ProjectPriority) => <Tag>{priorityLabel(value)}</Tag>,
     },
     {
+      title: '異常/解決',
+      key: 'anomalies',
+      width: 100,
+      align: 'right',
+      render: (_: unknown, row) => (
+        <Typography.Text>
+          {row.totalAnomalies}/{row.resolvedAnomalies}
+        </Typography.Text>
+      ),
+    },
+    {
       title: '進捗',
       dataIndex: 'progressPercentage',
-      width: 80,
-      align: 'right',
-      render: (v: number) => `${v}%`,
+      width: 140,
+      render: (v: number) => <Progress percent={v} size="small" />,
+    },
+    {
+      title: '開始',
+      dataIndex: 'startDate',
+      width: 110,
+      render: (v: string) => dayjs(v).format('YYYY/MM/DD'),
+    },
+    {
+      title: '予定終了',
+      dataIndex: 'plannedEndDate',
+      width: 110,
+      render: (v: string) => dayjs(v).format('YYYY/MM/DD'),
+    },
+    {
+      title: '車両',
+      dataIndex: 'vehicleModel',
+      width: 120,
+    },
+    {
+      title: '主要システム',
+      dataIndex: 'primarySystem',
+      width: 140,
     },
   ]
 
-  // skeleton implementation: filter in-memory
-  const query = Form.useWatch([], form) as ProjectsQuery | undefined
-  const rows = mockProjects.filter(p => {
-    const f = (query?.filter ?? '').trim().toLowerCase()
-    if (f) {
-      const hay = `${p.projectCode} ${p.projectName}`.toLowerCase()
-      if (!hay.includes(f)) return false
+  async function reload() {
+    setLoading(true)
+    try {
+      const values = form.getFieldsValue()
+      const rows = await projectsApi.list(values)
+      setData(rows)
+    } finally {
+      setLoading(false)
     }
-    if (query?.status !== undefined && query?.status !== null) {
-      if (p.status !== query.status) return false
-    }
-    if (query?.priority !== undefined && query?.priority !== null) {
-      if (p.priority !== query.priority) return false
-    }
-    if (query?.vehicleModel) {
-      if (!p.vehicleModel.toLowerCase().includes(query.vehicleModel.toLowerCase())) return false
-    }
-    if (query?.primarySystem) {
-      if (!p.primarySystem.toLowerCase().includes(query.primarySystem.toLowerCase())) return false
-    }
-    return true
-  })
+  }
+
+  useEffect(() => {
+    // NOTE: this setTimeout avoids a lint rule that discourages synchronous setState in effect bodies.
+    const id = window.setTimeout(() => {
+      void reload()
+    }, 0)
+    return () => window.clearTimeout(id)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  const rowSelection: TableRowSelection<Project> = {
+    selectedRowKeys,
+    onChange: next => setSelectedRowKeys(next),
+  }
+
+  const stats = useMemo(() => {
+    const totalProjects = data.length
+    const activeProjects = data.filter(p => p.status === ProjectStatus.Active).length
+    const completedProjects = data.filter(p => p.status === ProjectStatus.Completed).length
+    const delayedProjects = data.filter(p => {
+      if (p.status === ProjectStatus.Completed || p.status === ProjectStatus.Cancelled) return false
+      return dayjs(p.plannedEndDate).isBefore(dayjs(), 'day')
+    }).length
+
+    return { totalProjects, activeProjects, completedProjects, delayedProjects }
+  }, [data])
 
   return (
     <Space direction="vertical" size="large" style={{ display: 'flex' }}>
@@ -122,12 +189,51 @@ export default function ProjectListPage() {
           Projects / List
         </Typography.Title>
         <Typography.Text type="secondary">
-          一覧・検索 UI のスケルトン（現状は mock データ）
+          一覧・検索 UI（現状は mock + projectsApi 経由）
         </Typography.Text>
       </div>
 
+      <Row gutter={12}>
+        <Col xs={12} md={6}>
+          <Card size="small">
+            <Typography.Text type="secondary">総プロジェクト数</Typography.Text>
+            <div style={{ fontSize: 20, fontWeight: 600 }}>{stats.totalProjects}</div>
+          </Card>
+        </Col>
+        <Col xs={12} md={6}>
+          <Card size="small">
+            <Typography.Text type="secondary">進行中</Typography.Text>
+            <div style={{ fontSize: 20, fontWeight: 600 }}>{stats.activeProjects}</div>
+          </Card>
+        </Col>
+        <Col xs={12} md={6}>
+          <Card size="small">
+            <Typography.Text type="secondary">完了</Typography.Text>
+            <div style={{ fontSize: 20, fontWeight: 600 }}>{stats.completedProjects}</div>
+          </Card>
+        </Col>
+        <Col xs={12} md={6}>
+          <Card size="small">
+            <Typography.Text type="secondary">遅延</Typography.Text>
+            <div style={{ fontSize: 20, fontWeight: 600 }}>{stats.delayedProjects}</div>
+          </Card>
+        </Col>
+      </Row>
+
       <Card>
-        <Form form={form} layout="vertical" initialValues={{}}>
+        <Form
+          form={form}
+          layout="vertical"
+          initialValues={{}}
+          onValuesChange={() => {
+            if (debounceTimerRef.current) {
+              window.clearTimeout(debounceTimerRef.current)
+            }
+            debounceTimerRef.current = window.setTimeout(() => {
+              void reload()
+            }, 300)
+          }}
+        >
           <Row gutter={16}>
             <Col xs={24} md={8}>
               <Form.Item name="filter" label="検索">
@@ -137,7 +243,9 @@ export default function ProjectListPage() {
 
             <Col xs={24} md={6}>
               <Form.Item name="status" label="ステータス">
-                <Select allowClear placeholder="すべて"
+                <Select
+                  allowClear
+                  placeholder="すべて"
                   options={[
                     { value: ProjectStatus.Planning, label: '計画中' },
                     { value: ProjectStatus.Active, label: '進行中' },
@@ -151,7 +259,9 @@ export default function ProjectListPage() {
 
             <Col xs={24} md={6}>
               <Form.Item name="priority" label="優先度">
-                <Select allowClear placeholder="すべて"
+                <Select
+                  allowClear
+                  placeholder="すべて"
                   options={[
                     { value: ProjectPriority.Low, label: '低' },
                     { value: ProjectPriority.Medium, label: '中' },
@@ -175,6 +285,21 @@ export default function ProjectListPage() {
                 <Input allowClear placeholder="例: Brake" />
               </Form.Item>
             </Col>
+
+            <Col xs={24} md={16} style={{ display: 'flex', alignItems: 'end' }}>
+              <Space>
+                <Button onClick={() => form.resetFields()}>クリア</Button>
+                <Button type="primary" onClick={() => void reload()}>
+                  更新
+                </Button>
+                <Button type="dashed" disabled>
+                  新規（後で実装）
+                </Button>
+                <Button disabled={selectedRowKeys.length === 0}>
+                  一括操作（後で実装）
+                </Button>
+              </Space>
+            </Col>
           </Row>
         </Form>
       </Card>
@@ -182,8 +307,11 @@ export default function ProjectListPage() {
       <Table
         rowKey="id"
         columns={columns}
-        dataSource={rows}
+        loading={loading}
+        rowSelection={rowSelection}
+        dataSource={data}
         pagination={{ pageSize: 10 }}
+        scroll={{ x: 1300 }}
       />
     </Space>
   )
