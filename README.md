@@ -18,14 +18,35 @@
 
 ## ローカル起動
 
-```bash
-cd backend
+### Backend (Spring Boot)
 
-# 1. ローカル MySQL に DB を作成 (初回のみ)
-mysql -u root -p -e "CREATE DATABASE anomaly_detection CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;"
+#### 1. ローカル MySQL/MariaDB に DB を作成 (初回のみ)
 
-# 2. バックエンド起動
-./mvnw -pl host -am spring-boot:run -Dspring-boot.run.profiles=local
+```sql
+CREATE DATABASE anomaly_detection
+  CHARACTER SET utf8mb4
+  COLLATE utf8mb4_unicode_ci;
+```
+
+#### 2. バックエンド起動
+
+PowerShell では `./mvnw` ではなく `mvnw.cmd` を推奨します。
+また multi-module 構成のため、初回は install を挟むのが確実です。
+
+```powershell
+cd .\backend
+
+# 2-1) host の依存モジュールをローカル repo に install
+.\mvnw.cmd -f .\pom.xml -pl host -am -DskipTests install
+
+# 2-2) host を起動
+.\mvnw.cmd -f .\host\pom.xml spring-boot:run -Dspring-boot.run.profiles=local
+```
+
+DB パスワードを `123` 以外にしたい場合は、環境変数で上書きできます。
+
+```powershell
+$env:ANOMALY_DB_PASSWORD = "your_password"
 ```
 
 `http://localhost:44397/actuator/health` でヘルスチェックを確認。
