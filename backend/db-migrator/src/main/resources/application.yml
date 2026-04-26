@@ -1,0 +1,25 @@
+spring:
+  application:
+    name: anomaly-detection-db-migrator
+  main:
+    web-application-type: none
+  datasource:
+    url: jdbc:mysql://localhost:3306/anomaly_detection?useUnicode=true&characterEncoding=utf8&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+    username: root
+    password: ${ANOMALY_DB_PASSWORD:123}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+  liquibase:
+    enabled: true
+    change-log: classpath:db/changelog/db.changelog-master.yaml
+
+logging:
+  level:
+    root: WARN
+    com.anomalydetection: INFO
+    liquibase: INFO
