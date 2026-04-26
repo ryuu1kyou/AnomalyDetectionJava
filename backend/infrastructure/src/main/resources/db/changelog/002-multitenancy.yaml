@@ -1,0 +1,93 @@
+databaseChangeLog:
+  - logicalFilePath: db/changelog/002-multitenancy.yaml
+
+  - changeSet:
+      id: 001-create-tenants
+      author: m1-baseline
+      comment: "ABP Tenant equivalent — tenants table"
+      changes:
+        - createTable:
+            tableName: tenants
+            columns:
+              - column:
+                  name: id
+                  type: BINARY(16)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: name
+                  type: VARCHAR(256)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: normalized_name
+                  type: VARCHAR(256)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: is_active
+                  type: BOOLEAN
+                  defaultValueBoolean: true
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: DATETIME
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_by
+                  type: BINARY(16)
+              - column:
+                  name: last_modified_at
+                  type: DATETIME
+              - column:
+                  name: last_modified_by
+                  type: BINARY(16)
+              - column:
+                  name: is_deleted
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: deleted_at
+                  type: DATETIME
+              - column:
+                  name: deleted_by
+                  type: BINARY(16)
+        - createIndex:
+            tableName: tenants
+            indexName: idx_tenants_normalized_name
+            columns:
+              - column:
+                  name: normalized_name
+
+  - changeSet:
+      id: 002-create-tenant-connection-strings
+      author: m1-baseline
+      comment: "ABP TenantConnectionString equivalent"
+      changes:
+        - createTable:
+            tableName: tenant_connection_strings
+            columns:
+              - column:
+                  name: tenant_id
+                  type: BINARY(16)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: name
+                  type: VARCHAR(64)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: value
+                  type: VARCHAR(1024)
+                  constraints:
+                    nullable: false
+        - addPrimaryKey:
+            tableName: tenant_connection_strings
+            columnNames: tenant_id, name
+            constraintName: pk_tenant_connection_strings

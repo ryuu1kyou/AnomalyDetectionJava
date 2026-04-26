@@ -1,0 +1,297 @@
+databaseChangeLog:
+  - logicalFilePath: db/changelog/001-identity.yaml
+
+  - changeSet:
+      id: 001-create-users
+      author: m1-baseline
+      comment: "ABP IdentityUser equivalent — users table"
+      changes:
+        - createTable:
+            tableName: users
+            columns:
+              - column:
+                  name: id
+                  type: BINARY(16)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: tenant_id
+                  type: BINARY(16)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: user_name
+                  type: VARCHAR(256)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: normalized_user_name
+                  type: VARCHAR(256)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: email
+                  type: VARCHAR(256)
+              - column:
+                  name: normalized_email
+                  type: VARCHAR(256)
+              - column:
+                  name: email_confirmed
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: password_hash
+                  type: VARCHAR(512)
+              - column:
+                  name: phone_number
+                  type: VARCHAR(64)
+              - column:
+                  name: phone_number_confirmed
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: two_factor_enabled
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: lockout_enabled
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: lockout_end
+                  type: DATETIME
+              - column:
+                  name: access_failed_count
+                  type: INT
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+              - column:
+                  name: is_active
+                  type: BOOLEAN
+                  defaultValueBoolean: true
+                  constraints:
+                    nullable: false
+              # audit columns (FullAuditedEntity)
+              - column:
+                  name: created_at
+                  type: DATETIME
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_by
+                  type: BINARY(16)
+              - column:
+                  name: last_modified_at
+                  type: DATETIME
+              - column:
+                  name: last_modified_by
+                  type: BINARY(16)
+              - column:
+                  name: is_deleted
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: deleted_at
+                  type: DATETIME
+              - column:
+                  name: deleted_by
+                  type: BINARY(16)
+        - createIndex:
+            tableName: users
+            indexName: idx_users_tenant_id
+            columns:
+              - column:
+                  name: tenant_id
+        - createIndex:
+            tableName: users
+            indexName: idx_users_normalized_user_name
+            columns:
+              - column:
+                  name: normalized_user_name
+        - createIndex:
+            tableName: users
+            indexName: idx_users_normalized_email
+            columns:
+              - column:
+                  name: normalized_email
+
+  - changeSet:
+      id: 002-create-roles
+      author: m1-baseline
+      comment: "ABP IdentityRole equivalent — roles table"
+      changes:
+        - createTable:
+            tableName: roles
+            columns:
+              - column:
+                  name: id
+                  type: BINARY(16)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: tenant_id
+                  type: BINARY(16)
+              - column:
+                  name: name
+                  type: VARCHAR(256)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: normalized_name
+                  type: VARCHAR(256)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: is_static
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: is_default
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              # audit columns
+              - column:
+                  name: created_at
+                  type: DATETIME
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_by
+                  type: BINARY(16)
+              - column:
+                  name: last_modified_at
+                  type: DATETIME
+              - column:
+                  name: last_modified_by
+                  type: BINARY(16)
+              - column:
+                  name: is_deleted
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: deleted_at
+                  type: DATETIME
+              - column:
+                  name: deleted_by
+                  type: BINARY(16)
+        - createIndex:
+            tableName: roles
+            indexName: idx_roles_tenant_id
+            columns:
+              - column:
+                  name: tenant_id
+
+  - changeSet:
+      id: 003-create-user-roles
+      author: m1-baseline
+      comment: "Many-to-many join table for users and roles"
+      changes:
+        - createTable:
+            tableName: user_roles
+            columns:
+              - column:
+                  name: user_id
+                  type: BINARY(16)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: role_id
+                  type: BINARY(16)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: tenant_id
+                  type: BINARY(16)
+        - addPrimaryKey:
+            tableName: user_roles
+            columnNames: user_id, role_id
+            constraintName: pk_user_roles
+
+  - changeSet:
+      id: 004-create-organization-units
+      author: m1-baseline
+      comment: "ABP OrganizationUnit equivalent — hierarchical org units"
+      changes:
+        - createTable:
+            tableName: organization_units
+            columns:
+              - column:
+                  name: id
+                  type: BINARY(16)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: tenant_id
+                  type: BINARY(16)
+              - column:
+                  name: parent_id
+                  type: BINARY(16)
+              - column:
+                  name: code
+                  type: VARCHAR(128)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: display_name
+                  type: VARCHAR(256)
+                  constraints:
+                    nullable: false
+              # audit columns
+              - column:
+                  name: created_at
+                  type: DATETIME
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_by
+                  type: BINARY(16)
+              - column:
+                  name: last_modified_at
+                  type: DATETIME
+              - column:
+                  name: last_modified_by
+                  type: BINARY(16)
+              - column:
+                  name: is_deleted
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: deleted_at
+                  type: DATETIME
+              - column:
+                  name: deleted_by
+                  type: BINARY(16)
+        - createIndex:
+            tableName: organization_units
+            indexName: idx_org_units_tenant_id
+            columns:
+              - column:
+                  name: tenant_id
+        - createIndex:
+            tableName: organization_units
+            indexName: idx_org_units_code
+            columns:
+              - column:
+                  name: code
