@@ -1,5 +1,6 @@
 package com.anomalydetection.authserver;
 
+import com.nimbusds.jose.jwk.KeyUse;
 import com.nimbusds.jose.jwk.RSAKey;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -22,6 +23,7 @@ final class RsaKeyGenerator {
     }
     return new RSAKey.Builder((RSAPublicKey) keyPair.getPublic())
         .privateKey((RSAPrivateKey) keyPair.getPrivate())
+        .keyUse(KeyUse.SIGNATURE)
         .keyID(UUID.randomUUID().toString())
         .build();
   }

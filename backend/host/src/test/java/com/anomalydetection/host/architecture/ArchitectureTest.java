@@ -1,5 +1,8 @@
 package com.anomalydetection.host.architecture;
 
+import static com.tngtech.archunit.base.DescribedPredicate.not;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAPackage;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.dependOnClassesThat;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
 import com.tngtech.archunit.core.importer.ImportOption;
@@ -39,9 +42,11 @@ class ArchitectureTest {
       noClasses()
           .that()
           .resideInAPackage("..com.anomalydetection.domain..")
-          .should()
-          .dependOnClassesThat()
-          .resideInAPackage("org.springframework..");
+          .should(
+              dependOnClassesThat(
+                  resideInAPackage("org.springframework..")
+                      .and(not(resideInAPackage("org.springframework.modulith..")))
+                      .as("Spring classes outside of Spring Modulith")));
 
   @ArchTest
   static final ArchRule applicationMustNotDependOnWeb =
