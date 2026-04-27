@@ -1,0 +1,69 @@
+databaseChangeLog:
+  - logicalFilePath: db/changelog/014-outbox.yaml
+
+  - changeSet:
+      id: 014-001-outbox-events
+      author: m3-crosscutting
+      comment: "Generic outbox table for domain events"
+      changes:
+        - createTable:
+            tableName: outbox_events
+            columns:
+              - column:
+                  name: id
+                  type: BINARY(16)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: tenant_id
+                  type: BINARY(16)
+              - column:
+                  name: aggregate_type
+                  type: VARCHAR(512)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: aggregate_id
+                  type: VARCHAR(128)
+              - column:
+                  name: event_type
+                  type: VARCHAR(512)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: payload
+                  type: LONGTEXT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: occurred_at
+                  type: DATETIME(3)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: published_at
+                  type: DATETIME(3)
+              - column:
+                  name: attempts
+                  type: INT
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+              - column:
+                  name: last_error
+                  type: LONGTEXT
+
+        - createIndex:
+            tableName: outbox_events
+            indexName: idx_outbox_events_published_at
+            columns:
+              - column:
+                  name: published_at
+
+        - createIndex:
+            tableName: outbox_events
+            indexName: idx_outbox_events_occurred_at
+            columns:
+              - column:
+                  name: occurred_at

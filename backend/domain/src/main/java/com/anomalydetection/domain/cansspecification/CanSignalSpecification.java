@@ -44,7 +44,7 @@ public class CanSignalSpecification extends FullAuditedEntity<UUID> {
   @Column(name = "conversion_type", nullable = false, length = 32)
   private ConversionType conversionType;
 
-  @Column
+  @Column(name = "offset_value")
   private Double offset;
 
   @Column

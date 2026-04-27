@@ -1,5 +1,15 @@
 # MariaDB4j 用設定。ポートは MariaDB4jExtension が動的に注入する。
 spring:
+  autoconfigure:
+    exclude:
+      # Quartz が ThreadPool を生成し surefire の fork JVM 終了待ちに引っ掛かることがあるため、
+      # テストでは自動設定を丸ごと停止する。
+      - org.springframework.boot.autoconfigure.quartz.QuartzAutoConfiguration
+  main:
+    # Surefire が fork JVM を終了させるとき、Spring Boot の shutdown hook がコンテキスト close を行う。
+    # Windows では close が長引くことがあり、"Surefire is going to kill self fork JVM" の原因になるため無効化。
+    # (fork JVM なのでリソース解放を待つ必要はなく、JVM 終了に任せればよい)
+    register-shutdown-hook: false
   datasource:
     url: ${TEST_DB_URL:jdbc:mysql://localhost:0/test}
     username: root
@@ -8,6 +18,13 @@ spring:
     show-sql: false
   liquibase:
     enabled: true
+  # テスト実行時に Quartz / Scheduling が起動すると JVM が終了できず、
+  # Surefire が fork JVM を強制 kill することがあるため停止する。
+  quartz:
+    auto-startup: false
+  task:
+    scheduling:
+      enabled: false
 
 logging:
   level:

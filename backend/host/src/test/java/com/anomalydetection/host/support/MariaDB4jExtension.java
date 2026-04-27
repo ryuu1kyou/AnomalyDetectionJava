@@ -2,6 +2,9 @@ package com.anomalydetection.host.support;
 
 import ch.vorburger.mariadb4j.DB;
 import ch.vorburger.mariadb4j.DBConfigurationBuilder;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.UUID;
 import org.junit.jupiter.api.extension.AfterAllCallback;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -25,8 +28,26 @@ public class MariaDB4jExtension implements BeforeAllCallback, AfterAllCallback {
   @Override
   public synchronized void beforeAll(ExtensionContext context) throws Exception {
     if (sharedDb == null) {
+      // Windows + surefire fork で MariaDB4j が JVM shutdown hook 経由で temp 配下を削除しようとすると
+      // ファイルロック等で shutdown が長引き、"Surefire is going to kill self fork JVM" になりやすい。
+      // そのため、テスト用 DB のディレクトリを OS の temp 配下ではなく module の target 配下に作成する。
+      // (target 配下なら "temporary directory" 判定に引っかからず、shutdown hook 側の削除処理も走らない)
+      Path root = Path.of(System.getProperty("user.dir"), "target", "mariadb4j");
+      Files.createDirectories(root);
+
+      // data/tmp は衝突回避のためユニークに。
+      String runId = UUID.randomUUID().toString();
+
       DBConfigurationBuilder configBuilder = DBConfigurationBuilder.newBuilder();
       configBuilder.setPort(0); // free random port
+      configBuilder.setBaseDir(root.resolve("base").toString());
+      configBuilder.setDataDir(root.resolve("data").resolve(runId).toString());
+      configBuilder.setTmpDir(root.resolve("tmp").resolve(runId).toString());
+      // NOTE:
+      // MariaDB4j の「終了時に temp ディレクトリを削除する」処理は Windows だと遅くなりやすく、
+      // surefire の fork JVM が System.exit(0) 後 30 秒で kill される原因になりうる。
+      // テスト安定性を優先して削除を無効化し、OS の temp cleanup に任せる。
+      configBuilder.setDeletingTemporaryBaseAndDataDirsOnShutdown(false);
       sharedDb = DB.newEmbeddedDB(configBuilder.build());
       sharedDb.start();
       sharedDb.createDB(DATABASE_NAME);
@@ -46,8 +67,26 @@ public class MariaDB4jExtension implements BeforeAllCallback, AfterAllCallback {
 
   @Override
   public void afterAll(ExtensionContext context) {
-    // Keep DB alive for the JVM lifetime so subsequent test classes share it.
-    // It will be stopped by JVM shutdown hooks.
+    // NOTE:
+    // 以前は JVM shutdown hook に任せて DB を停止していたが、
+    // MariaDB4j/commons-exec が生成する非 daemon thread が残り、
+    // Surefire の fork JVM が 30 秒で kill されることがあった。
+    //
+    // そのため、テストクラス単位で確実に stop() する。
+    // (速度は落ちるが、CI/ローカルでの安定性を優先)
+    synchronized (MariaDB4jExtension.class) {
+      if (sharedDb != null) {
+        try {
+          sharedDb.stop();
+        } catch (Exception ignored) {
+          // ignore
+        } finally {
+          sharedDb = null;
+          sharedJdbcUrl = null;
+          System.clearProperty("TEST_DB_URL");
+        }
+      }
+    }
   }
 
   /** Convenience helper for {@code @DynamicPropertySource} based wiring. */

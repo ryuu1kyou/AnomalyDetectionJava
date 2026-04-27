@@ -1,0 +1,26 @@
+databaseChangeLog:
+  - logicalFilePath: db/changelog/016-blob-storage.yaml
+
+  - changeSet:
+      id: 016-001-blobs-storage-columns
+      author: m3-crosscutting
+      comment: "Add columns to support alternative blob storage providers"
+      changes:
+        - addColumn:
+            tableName: blobs
+            columns:
+              - column:
+                  name: storage_type
+                  type: VARCHAR(32)
+                  defaultValue: "DB"
+                  constraints:
+                    nullable: false
+              - column:
+                  name: storage_path
+                  type: VARCHAR(1024)
+        - createIndex:
+            tableName: blobs
+            indexName: idx_blobs_tenant_id
+            columns:
+              - column:
+                  name: tenant_id

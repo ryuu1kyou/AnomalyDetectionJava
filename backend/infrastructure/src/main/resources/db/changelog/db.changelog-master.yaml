@@ -22,6 +22,14 @@ databaseChangeLog:
   - include:
       file: classpath:db/changelog/010-blob.yaml
   - include:
+      file: classpath:db/changelog/014-outbox.yaml
+  - include:
+      file: classpath:db/changelog/015-audit-extra.yaml
+  - include:
+      file: classpath:db/changelog/016-blob-storage.yaml
+  - include:
       file: classpath:db/changelog/011-cansspecification.yaml
   - include:
       file: classpath:db/changelog/012-cansignals.yaml
+  - include:
+      file: classpath:db/changelog/013-detectiontemplates.yaml

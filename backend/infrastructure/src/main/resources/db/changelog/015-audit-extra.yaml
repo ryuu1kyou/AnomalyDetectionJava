@@ -1,0 +1,23 @@
+databaseChangeLog:
+  - logicalFilePath: db/changelog/015-audit-extra.yaml
+
+  - changeSet:
+      id: 015-001-audit-logs-extra
+      author: m3-crosscutting
+      comment: "Enhance audit_logs with client info and extra properties"
+      changes:
+        - addColumn:
+            tableName: audit_logs
+            columns:
+              - column:
+                  name: client_ip
+                  type: VARCHAR(64)
+              - column:
+                  name: user_agent
+                  type: VARCHAR(512)
+              - column:
+                  name: query_string
+                  type: VARCHAR(2048)
+              - column:
+                  name: extra_properties
+                  type: LONGTEXT
