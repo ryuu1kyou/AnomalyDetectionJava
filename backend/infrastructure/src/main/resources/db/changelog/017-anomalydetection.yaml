@@ -1,0 +1,337 @@
+databaseChangeLog:
+  - logicalFilePath: db/changelog/017-anomalydetection.yaml
+
+  - changeSet:
+      id: 017-001-can-anomaly-detection-logics
+      author: m4-anomalydetection
+      comment: "CanAnomalyDetectionLogic aggregate"
+      changes:
+        - createTable:
+            tableName: can_anomaly_detection_logics
+            columns:
+              - column:
+                  name: id
+                  type: BINARY(16)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: tenant_id
+                  type: BINARY(16)
+              # Identity
+              - column:
+                  name: name
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: version
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: oem_code
+                  type: VARCHAR(100)
+              # Specification
+              - column:
+                  name: anomaly_type
+                  type: VARCHAR(32)
+              - column:
+                  name: description
+                  type: VARCHAR(1000)
+              - column:
+                  name: target_system_type
+                  type: VARCHAR(32)
+              - column:
+                  name: complexity
+                  type: VARCHAR(16)
+              - column:
+                  name: requirements
+                  type: VARCHAR(2000)
+              # Implementation
+              - column:
+                  name: implementation_type
+                  type: VARCHAR(32)
+              - column:
+                  name: implementation_content
+                  type: LONGTEXT
+              - column:
+                  name: implementation_language
+                  type: VARCHAR(50)
+              - column:
+                  name: implementation_entry_point
+                  type: VARCHAR(200)
+              # Safety
+              - column:
+                  name: asil_level
+                  type: VARCHAR(8)
+              - column:
+                  name: safety_requirement_id
+                  type: VARCHAR(100)
+              - column:
+                  name: safety_goal_id
+                  type: VARCHAR(100)
+              - column:
+                  name: hazard_analysis_id
+                  type: VARCHAR(100)
+              # Status
+              - column:
+                  name: status
+                  type: VARCHAR(32)
+                  defaultValue: "DRAFT"
+                  constraints:
+                    nullable: false
+              - column:
+                  name: sharing_level
+                  type: VARCHAR(16)
+                  defaultValue: "PRIVATE"
+                  constraints:
+                    nullable: false
+              - column:
+                  name: source_logic_id
+                  type: BINARY(16)
+              - column:
+                  name: vehicle_phase_id
+                  type: BINARY(16)
+              - column:
+                  name: approved_at
+                  type: DATETIME(3)
+              - column:
+                  name: approved_by
+                  type: BINARY(16)
+              - column:
+                  name: approval_notes
+                  type: LONGTEXT
+              # Execution stats
+              - column:
+                  name: execution_count
+                  type: INT
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+              - column:
+                  name: last_executed_at
+                  type: DATETIME(3)
+              - column:
+                  name: last_execution_time_ms
+                  type: DOUBLE
+              # FullAuditedEntity columns
+              - column:
+                  name: created_at
+                  type: datetime(6)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_by
+                  type: BINARY(16)
+              - column:
+                  name: last_modified_at
+                  type: datetime(6)
+              - column:
+                  name: last_modified_by
+                  type: BINARY(16)
+              - column:
+                  name: is_deleted
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: deleted_at
+                  type: datetime(6)
+              - column:
+                  name: deleted_by
+                  type: BINARY(16)
+
+        - createIndex:
+            tableName: can_anomaly_detection_logics
+            indexName: idx_cadl_tenant_id
+            columns:
+              - column:
+                  name: tenant_id
+        - createIndex:
+            tableName: can_anomaly_detection_logics
+            indexName: idx_cadl_status
+            columns:
+              - column:
+                  name: status
+
+  - changeSet:
+      id: 017-002-anomaly-detection-results
+      author: m4-anomalydetection
+      comment: "AnomalyDetectionResult aggregate"
+      changes:
+        - createTable:
+            tableName: anomaly_detection_results
+            columns:
+              - column:
+                  name: id
+                  type: BINARY(16)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: tenant_id
+                  type: BINARY(16)
+              - column:
+                  name: detection_logic_id
+                  type: BINARY(16)
+              - column:
+                  name: can_signal_id
+                  type: BINARY(16)
+              - column:
+                  name: detected_at
+                  type: DATETIME(3)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: anomaly_level
+                  type: VARCHAR(16)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: anomaly_type
+                  type: VARCHAR(32)
+              - column:
+                  name: confidence_score
+                  type: DOUBLE
+                  defaultValueNumeric: 0.0
+                  constraints:
+                    nullable: false
+              - column:
+                  name: description
+                  type: VARCHAR(1000)
+                  constraints:
+                    nullable: false
+              # InputData
+              - column:
+                  name: signal_value
+                  type: DOUBLE
+              - column:
+                  name: input_timestamp
+                  type: DATETIME(3)
+              - column:
+                  name: input_additional_data
+                  type: LONGTEXT
+              # DetectionDetails
+              - column:
+                  name: detection_type
+                  type: VARCHAR(32)
+              - column:
+                  name: trigger_condition
+                  type: VARCHAR(500)
+              - column:
+                  name: detection_params
+                  type: LONGTEXT
+              - column:
+                  name: execution_time_ms
+                  type: DOUBLE
+              # Validation
+              - column:
+                  name: is_validated
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: is_false_positive
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: validation_notes
+                  type: LONGTEXT
+              - column:
+                  name: detection_condition
+                  type: VARCHAR(500)
+              - column:
+                  name: detection_duration_ms
+                  type: BIGINT
+              # Resolution
+              - column:
+                  name: resolution_status
+                  type: VARCHAR(32)
+                  defaultValue: "OPEN"
+                  constraints:
+                    nullable: false
+              - column:
+                  name: resolved_at
+                  type: DATETIME(3)
+              - column:
+                  name: resolved_by
+                  type: BINARY(16)
+              - column:
+                  name: resolution_notes
+                  type: LONGTEXT
+              # Sharing
+              - column:
+                  name: sharing_level
+                  type: VARCHAR(16)
+                  defaultValue: "PRIVATE"
+                  constraints:
+                    nullable: false
+              - column:
+                  name: is_shared
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: shared_at
+                  type: DATETIME(3)
+              - column:
+                  name: shared_by
+                  type: BINARY(16)
+              # FullAuditedEntity columns
+              - column:
+                  name: created_at
+                  type: datetime(6)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_by
+                  type: BINARY(16)
+              - column:
+                  name: last_modified_at
+                  type: datetime(6)
+              - column:
+                  name: last_modified_by
+                  type: BINARY(16)
+              - column:
+                  name: is_deleted
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: deleted_at
+                  type: datetime(6)
+              - column:
+                  name: deleted_by
+                  type: BINARY(16)
+
+        - createIndex:
+            tableName: anomaly_detection_results
+            indexName: idx_adr_tenant_id
+            columns:
+              - column:
+                  name: tenant_id
+        - createIndex:
+            tableName: anomaly_detection_results
+            indexName: idx_adr_detection_logic_id
+            columns:
+              - column:
+                  name: detection_logic_id
+        - createIndex:
+            tableName: anomaly_detection_results
+            indexName: idx_adr_detected_at
+            columns:
+              - column:
+                  name: detected_at
+        - createIndex:
+            tableName: anomaly_detection_results
+            indexName: idx_adr_resolution_status
+            columns:
+              - column:
+                  name: resolution_status
