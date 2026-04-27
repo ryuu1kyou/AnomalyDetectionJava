@@ -12,6 +12,10 @@ spring:
   liquibase:
     enabled: true
     change-log: classpath:db/changelog/db.changelog-master.yaml
+  security:
+    oauth2:
+      authorizationserver:
+        issuer: ${AUTH_SERVER_ISSUER:http://localhost:44397}
 
 server:
   port: 44397
