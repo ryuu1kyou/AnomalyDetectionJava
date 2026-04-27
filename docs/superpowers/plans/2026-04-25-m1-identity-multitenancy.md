@@ -662,7 +662,7 @@ git commit -m "feat(m1): add Tenant aggregate and domain repository interfaces"
 
 ---
 
-### Task 3: Write tenant filter isolation integration test (failing)
+### Task 4: Write tenant filter isolation integration test (failing)
 
 Write the test BEFORE implementing infrastructure. It will fail because `JpaUserRepository` doesn't exist yet.
 
@@ -760,7 +760,7 @@ git commit -m "test(m1): add failing tenant filter isolation integration test"
 
 ---
 
-### Task 4: Create Spring Data JPA repositories and TenantAwareHibernateJpaDialect
+### Task 5: Create Spring Data JPA repositories and TenantAwareHibernateJpaDialect
 
 This is the core of M1. The `TenantAwareHibernateJpaDialect` overrides `beginTransaction` to enable the Hibernate filter at the start of every transaction, so application services never need Hibernate-specific code.
 
@@ -1013,7 +1013,7 @@ git commit -m "feat(m1): add JPA repositories, TenantAwareHibernateJpaDialect, I
 
 ---
 
-### Task 5: Spring Security — UserDetailsService and SecurityConfiguration
+### Task 6: Spring Security — UserDetailsService and SecurityConfiguration
 
 Spring Authorization Server (M2) needs a `UserDetailsService` to authenticate users. Add it now in infrastructure so M2 can depend on it without circular issues.
 
@@ -1190,7 +1190,7 @@ git commit -m "feat(m1): add UserDetailsService and minimal SecurityConfiguratio
 
 ---
 
-### Task 6: Application contracts — identity and tenancy DTOs
+### Task 7: Application contracts — identity and tenancy DTOs
 
 DTOs live in `application-contracts` so the web layer (and eventually OpenAPI generation) can reference them without coupling to domain entities.
 
@@ -1326,7 +1326,7 @@ git commit -m "feat(m1): add identity and tenancy DTOs to application-contracts"
 
 ---
 
-### Task 7: Application services — UserAppService and TenantAppService
+### Task 8: Application services — UserAppService and TenantAppService
 
 Application services orchestrate domain repository operations. They are `@Transactional` — the `TenantAwareHibernateJpaDialect` (Task 4) automatically enables the tenant filter when a transaction begins.
 
@@ -1703,7 +1703,7 @@ git commit -m "feat(m1): add UserAppService, RoleAppService, TenantAppService"
 
 ---
 
-### Task 8: Web controllers — UsersController and TenantsController
+### Task 9: Web controllers — UsersController and TenantsController
 
 REST endpoints following the same pattern as the existing `ProjectsController`.
 
@@ -1870,7 +1870,7 @@ git commit -m "feat(m1): add UsersController and TenantsController"
 
 ---
 
-### Task 9: TenantResolutionFilter unit test
+### Task 10: TenantResolutionFilter unit test
 
 Verify the filter correctly parses UUID from header and query parameter.
 
@@ -1963,7 +1963,7 @@ git commit -m "test(m1): add TenantResolutionFilter unit tests"
 
 ---
 
-### Task 10: DB Migrator — seed default tenant + admin user
+### Task 11: DB Migrator — seed default tenant + admin user
 
 The db-migrator is a standalone CLI Spring Boot app that runs Liquibase migrations then inserts seed data (default tenant + admin user + admin role). This is the Java equivalent of ABP's `DbMigrator`.
 
@@ -2213,7 +2213,7 @@ git commit -m "feat(m1): add DB migrator with default tenant, admin user, admin 
 
 ---
 
-### Task 11: Final verification — run all tests and update CLAUDE.md
+### Task 12: Final verification — run all tests and update CLAUDE.md
 
 - [ ] **Step 1: Run complete backend test suite**
 
