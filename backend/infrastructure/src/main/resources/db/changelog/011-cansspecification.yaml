@@ -1,0 +1,140 @@
+databaseChangeLog:
+  - logicalFilePath: db/changelog/011-cansspecification.yaml
+
+  - changeSet:
+      id: 011-create-can-system-categories
+      author: m4-cansspecification
+      comment: "CAN system categories master table"
+      changes:
+        - createTable:
+            tableName: can_system_categories
+            columns:
+              - column:
+                  name: id
+                  type: BINARY(16)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: tenant_id
+                  type: BINARY(16)
+              - column:
+                  name: name
+                  type: VARCHAR(128)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: description
+                  type: TEXT
+              - column:
+                  name: display_order
+                  type: INT
+                  defaultValueNumeric: 0
+              # FullAuditedEntity columns
+              - column:
+                  name: created_at
+                  type: datetime(6)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_by
+                  type: BINARY(16)
+              - column:
+                  name: last_modified_at
+                  type: datetime(6)
+              - column:
+                  name: last_modified_by
+                  type: BINARY(16)
+              - column:
+                  name: is_deleted
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: deleted_at
+                  type: datetime(6)
+              - column:
+                  name: deleted_by
+                  type: BINARY(16)
+
+  - changeSet:
+      id: 011-create-can-signal-specifications
+      author: m4-cansspecification
+      comment: "CAN signal specifications table"
+      changes:
+        - createTable:
+            tableName: can_signal_specifications
+            columns:
+              - column:
+                  name: id
+                  type: BINARY(16)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: tenant_id
+                  type: BINARY(16)
+              - column:
+                  name: signal_identifier
+                  type: VARCHAR(128)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: name
+                  type: VARCHAR(256)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: system_category_id
+                  type: BINARY(16)
+              - column:
+                  name: conversion_type
+                  type: VARCHAR(32)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: offset
+                  type: DOUBLE
+              - column:
+                  name: gain
+                  type: DOUBLE
+              - column:
+                  name: min_value
+                  type: DOUBLE
+              - column:
+                  name: max_value
+                  type: DOUBLE
+              - column:
+                  name: unit
+                  type: VARCHAR(64)
+              - column:
+                  name: description
+                  type: TEXT
+              # FullAuditedEntity columns
+              - column:
+                  name: created_at
+                  type: datetime(6)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_by
+                  type: BINARY(16)
+              - column:
+                  name: last_modified_at
+                  type: datetime(6)
+              - column:
+                  name: last_modified_by
+                  type: BINARY(16)
+              - column:
+                  name: is_deleted
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: deleted_at
+                  type: datetime(6)
+              - column:
+                  name: deleted_by
+                  type: BINARY(16)

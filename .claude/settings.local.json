@@ -1,0 +1,37 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__plugin_episodic-memory_episodic-memory__search",
+      "mcp__plugin_episodic-memory_episodic-memory__read",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(mvn compile *)",
+      "Bash(jar tf *)",
+      "Bash(mvn dependency:unpack -pl auth-server -Dartifact=org.springframework.security:spring-security-oauth2-authorization-server:1.3.3 -DoutputDirectory=/tmp/sas-unpack -q)",
+      "Read(//tmp/**)",
+      "Bash(mvn test *)",
+      "Bash(mvn dependency:tree -pl host)",
+      "Bash(mvn dependency:list -pl host)",
+      "Bash(mvn dependency:list -pl auth-server)",
+      "Bash(mvn dependency:list -pl host --also-make)",
+      "Bash(mvn install *)",
+      "Bash(unzip -l ~/.m2/repository/com/anomalydetection/anomaly-detection-auth-server/1.0.0-SNAPSHOT/anomaly-detection-auth-server-1.0.0-SNAPSHOT.jar)",
+      "Read(//c/Users/ryuu1/.m2/repository/com/anomalydetection/anomaly-detection-web/1.0.0-SNAPSHOT/**)",
+      "Bash(unzip -l ~/.m2/repository/com/anomalydetection/anomaly-detection-web/1.0.0-SNAPSHOT/anomaly-detection-web-1.0.0-SNAPSHOT.jar)",
+      "Bash(git stash *)",
+      "Bash(./mvnw install *)",
+      "Bash(./mvnw test *)",
+      "Bash(xargs cat *)",
+      "Bash(grep -v \"^.*domain$\")",
+      "Bash(grep -v \"^.*java$\")",
+      "Bash(grep -v \"/com$\")",
+      "Bash(grep -v \"/anomalydetection$\")",
+      "Bash(git -C /c/work/tool/net/AnomalyDetectionJava status)",
+      "Bash(git -C /c/work/tool/net/AnomalyDetectionJava add backend/auth-server/src/main/java/com/anomalydetection/authserver/RsaKeyGenerator.java backend/host/src/test/java/com/anomalydetection/host/auth/ backend/application-contracts/pom.xml backend/application-contracts/src/main/java/com/anomalydetection/contracts/identity/package-info.java backend/application-contracts/src/main/java/com/anomalydetection/contracts/multitenancy/package-info.java backend/application-contracts/src/main/java/com/anomalydetection/contracts/projects/package-info.java backend/application/pom.xml backend/application/src/main/java/com/anomalydetection/application/identity/package-info.java backend/application/src/main/java/com/anomalydetection/application/multitenancy/package-info.java backend/application/src/main/java/com/anomalydetection/application/projects/package-info.java backend/domain/pom.xml backend/domain/src/main/java/com/anomalydetection/domain/base/package-info.java backend/domain/src/main/java/com/anomalydetection/domain/identity/package-info.java backend/domain/src/main/java/com/anomalydetection/domain/multitenancy/package-info.java backend/infrastructure/pom.xml backend/infrastructure/src/main/java/com/anomalydetection/infrastructure/identity/package-info.java backend/infrastructure/src/main/java/com/anomalydetection/infrastructure/multitenancy/package-info.java backend/infrastructure/src/main/java/com/anomalydetection/infrastructure/security/package-info.java backend/web/pom.xml backend/web/src/main/java/com/anomalydetection/web/identity/package-info.java backend/web/src/main/java/com/anomalydetection/web/multitenancy/package-info.java backend/web/src/main/java/com/anomalydetection/web/projects/package-info.java backend/host/src/test/java/com/anomalydetection/host/architecture/ArchitectureTest.java docs/superpowers/plans/2026-04-27-m2-spring-authorization-server.md)",
+      "Bash(git -C /c/work/tool/net/AnomalyDetectionJava commit -m ' *)",
+      "Bash(./mvnw verify *)",
+      "Bash(git -C /c/work/tool/net/AnomalyDetectionJava tag m2-spring-authorization-server)",
+      "Bash(git -C /c/work/tool/net/AnomalyDetectionJava add CLAUDE.md)"
+    ]
+  }
+}
