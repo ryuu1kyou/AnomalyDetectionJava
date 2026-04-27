@@ -39,3 +39,5 @@ databaseChangeLog:
       file: classpath:db/changelog/018-projects.yaml
   - include:
       file: classpath:db/changelog/019-safety.yaml
+  - include:
+      file: classpath:db/changelog/020-knowledgebase.yaml
