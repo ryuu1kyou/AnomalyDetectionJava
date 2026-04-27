@@ -1,0 +1,228 @@
+databaseChangeLog:
+  - logicalFilePath: db/changelog/021-oemtraceability.yaml
+
+  - changeSet:
+      id: 021-001-oem-approvals
+      author: m4-oemtraceability
+      comment: "OemApproval aggregate"
+      changes:
+        - createTable:
+            tableName: oem_approvals
+            columns:
+              - column:
+                  name: id
+                  type: BINARY(16)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: tenant_id
+                  type: BINARY(16)
+              - column:
+                  name: entity_id
+                  type: VARCHAR(200)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: entity_type
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: oem_code
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: type
+                  type: VARCHAR(32)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: requested_by
+                  type: BINARY(16)
+              - column:
+                  name: requested_at
+                  type: DATETIME(3)
+              - column:
+                  name: approved_by
+                  type: BINARY(16)
+              - column:
+                  name: approved_at
+                  type: DATETIME(3)
+              - column:
+                  name: status
+                  type: VARCHAR(16)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: approval_reason
+                  type: VARCHAR(2000)
+              - column:
+                  name: approval_notes
+                  type: LONGTEXT
+              - column:
+                  name: approval_data
+                  type: LONGTEXT
+              - column:
+                  name: due_date
+                  type: DATETIME(3)
+              - column:
+                  name: priority
+                  type: INT
+                  defaultValueNumeric: 2
+                  constraints:
+                    nullable: false
+              # FullAuditedEntity columns
+              - column:
+                  name: created_at
+                  type: datetime(6)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_by
+                  type: BINARY(16)
+              - column:
+                  name: last_modified_at
+                  type: datetime(6)
+              - column:
+                  name: last_modified_by
+                  type: BINARY(16)
+              - column:
+                  name: is_deleted
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: deleted_at
+                  type: datetime(6)
+              - column:
+                  name: deleted_by
+                  type: BINARY(16)
+
+        - createIndex:
+            tableName: oem_approvals
+            indexName: idx_oa_tenant_id
+            columns:
+              - column:
+                  name: tenant_id
+        - createIndex:
+            tableName: oem_approvals
+            indexName: idx_oa_oem_code
+            columns:
+              - column:
+                  name: oem_code
+        - createIndex:
+            tableName: oem_approvals
+            indexName: idx_oa_status
+            columns:
+              - column:
+                  name: status
+
+  - changeSet:
+      id: 021-002-oem-customizations
+      author: m4-oemtraceability
+      comment: "OemCustomization aggregate"
+      changes:
+        - createTable:
+            tableName: oem_customizations
+            columns:
+              - column:
+                  name: id
+                  type: BINARY(16)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: tenant_id
+                  type: BINARY(16)
+              - column:
+                  name: entity_id
+                  type: VARCHAR(200)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: entity_type
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: oem_code
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: type
+                  type: VARCHAR(32)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: custom_parameters
+                  type: LONGTEXT
+              - column:
+                  name: original_parameters
+                  type: LONGTEXT
+              - column:
+                  name: customization_reason
+                  type: VARCHAR(2000)
+              - column:
+                  name: approved_by
+                  type: BINARY(16)
+              - column:
+                  name: approved_at
+                  type: DATETIME(3)
+              - column:
+                  name: status
+                  type: VARCHAR(32)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: approval_notes
+                  type: LONGTEXT
+              # FullAuditedEntity columns
+              - column:
+                  name: created_at
+                  type: datetime(6)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_by
+                  type: BINARY(16)
+              - column:
+                  name: last_modified_at
+                  type: datetime(6)
+              - column:
+                  name: last_modified_by
+                  type: BINARY(16)
+              - column:
+                  name: is_deleted
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: deleted_at
+                  type: datetime(6)
+              - column:
+                  name: deleted_by
+                  type: BINARY(16)
+
+        - createIndex:
+            tableName: oem_customizations
+            indexName: idx_oc_tenant_id
+            columns:
+              - column:
+                  name: tenant_id
+        - createIndex:
+            tableName: oem_customizations
+            indexName: idx_oc_oem_code
+            columns:
+              - column:
+                  name: oem_code
+        - createIndex:
+            tableName: oem_customizations
+            indexName: idx_oc_status
+            columns:
+              - column:
+                  name: status
