@@ -1,0 +1,387 @@
+databaseChangeLog:
+  - logicalFilePath: db/changelog/022-integration.yaml
+
+  - changeSet:
+      id: 022-001-integration-endpoints
+      author: m4-integration
+      comment: "IntegrationEndpoint aggregate"
+      changes:
+        - createTable:
+            tableName: integration_endpoints
+            columns:
+              - column:
+                  name: id
+                  type: BINARY(16)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: tenant_id
+                  type: BINARY(16)
+              - column:
+                  name: name
+                  type: VARCHAR(200)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: description
+                  type: VARCHAR(2000)
+              - column:
+                  name: type
+                  type: VARCHAR(32)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: base_url
+                  type: VARCHAR(500)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: endpoint_url
+                  type: VARCHAR(500)
+              - column:
+                  name: api_key
+                  type: VARCHAR(500)
+              - column:
+                  name: is_active
+                  type: BOOLEAN
+                  defaultValueBoolean: true
+                  constraints:
+                    nullable: false
+              - column:
+                  name: timeout
+                  type: INT
+                  defaultValueNumeric: 30
+                  constraints:
+                    nullable: false
+              - column:
+                  name: require_authentication
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: authentication_scheme
+                  type: VARCHAR(50)
+              - column:
+                  name: configuration
+                  type: LONGTEXT
+              - column:
+                  name: last_sync_date
+                  type: DATETIME(3)
+              - column:
+                  name: success_count
+                  type: INT
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+              - column:
+                  name: failure_count
+                  type: INT
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+              # FullAuditedEntity columns
+              - column:
+                  name: created_at
+                  type: datetime(6)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_by
+                  type: BINARY(16)
+              - column:
+                  name: last_modified_at
+                  type: datetime(6)
+              - column:
+                  name: last_modified_by
+                  type: BINARY(16)
+              - column:
+                  name: is_deleted
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: deleted_at
+                  type: datetime(6)
+              - column:
+                  name: deleted_by
+                  type: BINARY(16)
+
+        - createIndex:
+            tableName: integration_endpoints
+            indexName: idx_ie_tenant_id
+            columns:
+              - column:
+                  name: tenant_id
+        - createIndex:
+            tableName: integration_endpoints
+            indexName: idx_ie_type
+            columns:
+              - column:
+                  name: type
+        - createIndex:
+            tableName: integration_endpoints
+            indexName: idx_ie_is_active
+            columns:
+              - column:
+                  name: is_active
+
+  - changeSet:
+      id: 022-002-webhook-subscriptions
+      author: m4-integration
+      comment: "WebhookSubscription entity"
+      changes:
+        - createTable:
+            tableName: webhook_subscriptions
+            columns:
+              - column:
+                  name: id
+                  type: BINARY(16)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: endpoint_id
+                  type: BINARY(16)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: target_url
+                  type: VARCHAR(500)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: event_type
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: is_active
+                  type: BOOLEAN
+                  defaultValueBoolean: true
+                  constraints:
+                    nullable: false
+              - column:
+                  name: secret
+                  type: VARCHAR(500)
+              - column:
+                  name: max_retries
+                  type: INT
+                  defaultValueNumeric: 3
+                  constraints:
+                    nullable: false
+              - column:
+                  name: timeout_seconds
+                  type: INT
+                  defaultValueNumeric: 30
+                  constraints:
+                    nullable: false
+              - column:
+                  name: last_triggered_at
+                  type: DATETIME(3)
+              - column:
+                  name: delivery_success_count
+                  type: INT
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+              - column:
+                  name: delivery_failure_count
+                  type: INT
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+              # FullAuditedEntity columns
+              - column:
+                  name: created_at
+                  type: datetime(6)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_by
+                  type: BINARY(16)
+              - column:
+                  name: last_modified_at
+                  type: datetime(6)
+              - column:
+                  name: last_modified_by
+                  type: BINARY(16)
+              - column:
+                  name: is_deleted
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: deleted_at
+                  type: datetime(6)
+              - column:
+                  name: deleted_by
+                  type: BINARY(16)
+
+        - createIndex:
+            tableName: webhook_subscriptions
+            indexName: idx_ws_endpoint_id
+            columns:
+              - column:
+                  name: endpoint_id
+
+  - changeSet:
+      id: 022-003-integration-logs
+      author: m4-integration
+      comment: "IntegrationLog entity"
+      changes:
+        - createTable:
+            tableName: integration_logs
+            columns:
+              - column:
+                  name: id
+                  type: BINARY(16)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: endpoint_id
+                  type: BINARY(16)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: timestamp
+                  type: DATETIME(3)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: level
+                  type: VARCHAR(10)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: operation
+                  type: VARCHAR(200)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: success
+                  type: BOOLEAN
+                  constraints:
+                    nullable: false
+              - column:
+                  name: request_data
+                  type: LONGTEXT
+              - column:
+                  name: response_data
+                  type: LONGTEXT
+              - column:
+                  name: error_message
+                  type: LONGTEXT
+              - column:
+                  name: status_code
+                  type: INT
+              - column:
+                  name: duration_ms
+                  type: BIGINT
+
+        - createIndex:
+            tableName: integration_logs
+            indexName: idx_il_endpoint_id
+            columns:
+              - column:
+                  name: endpoint_id
+
+  - changeSet:
+      id: 022-004-data-import-requests
+      author: m4-integration
+      comment: "DataImportRequest aggregate"
+      changes:
+        - createTable:
+            tableName: data_import_requests
+            columns:
+              - column:
+                  name: id
+                  type: BINARY(16)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: tenant_id
+                  type: BINARY(16)
+              - column:
+                  name: endpoint_id
+                  type: BINARY(16)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: data_type
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: filter
+                  type: VARCHAR(2000)
+              - column:
+                  name: data
+                  type: LONGTEXT
+              - column:
+                  name: requested_at
+                  type: DATETIME(3)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: processed_date
+                  type: DATETIME(3)
+              - column:
+                  name: records_imported
+                  type: INT
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+              - column:
+                  name: error_message
+                  type: LONGTEXT
+              # FullAuditedEntity columns
+              - column:
+                  name: created_at
+                  type: datetime(6)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_by
+                  type: BINARY(16)
+              - column:
+                  name: last_modified_at
+                  type: datetime(6)
+              - column:
+                  name: last_modified_by
+                  type: BINARY(16)
+              - column:
+                  name: is_deleted
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: deleted_at
+                  type: datetime(6)
+              - column:
+                  name: deleted_by
+                  type: BINARY(16)
+
+        - createIndex:
+            tableName: data_import_requests
+            indexName: idx_dir_endpoint_id
+            columns:
+              - column:
+                  name: endpoint_id
+        - createIndex:
+            tableName: data_import_requests
+            indexName: idx_dir_status
+            columns:
+              - column:
+                  name: status

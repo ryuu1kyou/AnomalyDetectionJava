@@ -43,3 +43,5 @@ databaseChangeLog:
       file: classpath:db/changelog/020-knowledgebase.yaml
   - include:
       file: classpath:db/changelog/021-oemtraceability.yaml
+  - include:
+      file: classpath:db/changelog/022-integration.yaml
