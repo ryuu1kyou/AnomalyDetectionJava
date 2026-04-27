@@ -1,0 +1,216 @@
+databaseChangeLog:
+  - logicalFilePath: db/changelog/019-safety.yaml
+
+  - changeSet:
+      id: 019-001-safety-trace-records
+      author: m4-safety
+      comment: "SafetyTraceRecord aggregate"
+      changes:
+        - createTable:
+            tableName: safety_trace_records
+            columns:
+              - column:
+                  name: id
+                  type: BINARY(16)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: tenant_id
+                  type: BINARY(16)
+              - column:
+                  name: name
+                  type: VARCHAR(200)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: description
+                  type: VARCHAR(2000)
+              - column:
+                  name: requirement_id
+                  type: VARCHAR(200)
+              - column:
+                  name: safety_goal_id
+                  type: VARCHAR(200)
+              - column:
+                  name: hazard_analysis_id
+                  type: VARCHAR(200)
+              - column:
+                  name: asil_level
+                  type: VARCHAR(8)
+                  defaultValue: "QM"
+              - column:
+                  name: detection_logic_id
+                  type: BINARY(16)
+              - column:
+                  name: project_id
+                  type: BINARY(16)
+              - column:
+                  name: version
+                  type: VARCHAR(20)
+                  defaultValue: "1.0"
+              - column:
+                  name: approval_status
+                  type: VARCHAR(32)
+                  defaultValue: "DRAFT"
+                  constraints:
+                    nullable: false
+              - column:
+                  name: submitted_at
+                  type: DATETIME(3)
+              - column:
+                  name: submitted_by
+                  type: BINARY(16)
+              - column:
+                  name: approved_at
+                  type: DATETIME(3)
+              - column:
+                  name: approved_by
+                  type: BINARY(16)
+              - column:
+                  name: approval_comments
+                  type: LONGTEXT
+              - column:
+                  name: related_documents
+                  type: LONGTEXT
+              - column:
+                  name: verifications
+                  type: LONGTEXT
+              - column:
+                  name: validations
+                  type: LONGTEXT
+              - column:
+                  name: lifecycle_events
+                  type: LONGTEXT
+              - column:
+                  name: change_requests
+                  type: LONGTEXT
+              # FullAuditedEntity columns
+              - column:
+                  name: created_at
+                  type: datetime(6)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_by
+                  type: BINARY(16)
+              - column:
+                  name: last_modified_at
+                  type: datetime(6)
+              - column:
+                  name: last_modified_by
+                  type: BINARY(16)
+              - column:
+                  name: is_deleted
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: deleted_at
+                  type: datetime(6)
+              - column:
+                  name: deleted_by
+                  type: BINARY(16)
+
+        - createIndex:
+            tableName: safety_trace_records
+            indexName: idx_str_tenant_id
+            columns:
+              - column:
+                  name: tenant_id
+        - createIndex:
+            tableName: safety_trace_records
+            indexName: idx_str_asil_level
+            columns:
+              - column:
+                  name: asil_level
+        - createIndex:
+            tableName: safety_trace_records
+            indexName: idx_str_approval_status
+            columns:
+              - column:
+                  name: approval_status
+        - createIndex:
+            tableName: safety_trace_records
+            indexName: idx_str_project_id
+            columns:
+              - column:
+                  name: project_id
+
+  - changeSet:
+      id: 019-002-safety-trace-links
+      author: m4-safety
+      comment: "SafetyTraceLink aggregate"
+      changes:
+        - createTable:
+            tableName: safety_trace_links
+            columns:
+              - column:
+                  name: id
+                  type: BINARY(16)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: tenant_id
+                  type: BINARY(16)
+              - column:
+                  name: source_record_id
+                  type: BINARY(16)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: target_record_id
+                  type: BINARY(16)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: link_type
+                  type: VARCHAR(100)
+              - column:
+                  name: relation
+                  type: VARCHAR(100)
+              - column:
+                  name: history
+                  type: LONGTEXT
+              # FullAuditedEntity columns
+              - column:
+                  name: created_at
+                  type: datetime(6)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_by
+                  type: BINARY(16)
+              - column:
+                  name: last_modified_at
+                  type: datetime(6)
+              - column:
+                  name: last_modified_by
+                  type: BINARY(16)
+              - column:
+                  name: is_deleted
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: deleted_at
+                  type: datetime(6)
+              - column:
+                  name: deleted_by
+                  type: BINARY(16)
+
+        - createIndex:
+            tableName: safety_trace_links
+            indexName: idx_stl_source_record_id
+            columns:
+              - column:
+                  name: source_record_id
+        - createIndex:
+            tableName: safety_trace_links
+            indexName: idx_stl_target_record_id
+            columns:
+              - column:
+                  name: target_record_id
