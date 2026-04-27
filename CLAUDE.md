@@ -155,7 +155,7 @@ application ──→ infrastructure ──→ host
 
 ## 5. 開発ステータス
 
-最終更新: 2026-04-26
+最終更新: 2026-04-27
 
 ### 5.1 マイルストーン進捗
 
@@ -163,10 +163,10 @@ application ──→ infrastructure ──→ host
 | --- | --- |
 | ブレインストーミング (要件・前提整理) | **完了** |
 | 設計書 (spec) 執筆 | **完了** |
-| 実装計画 (plan) 作成 | M0 **完了** / M1〜M7 **未着手** |
+| 実装計画 (plan) 作成 | M0〜M2 **完了** / M3〜M7 **未着手** |
 | **M0** (基盤セットアップ) | **完了** (tag: `m0-baseline`) |
 | **M1** (Identity + Multi-Tenancy) | **完了** (tag: `m1-identity-multitenancy`) |
-| **M2** (Spring Authorization Server) | **未着手** |
+| **M2** (Spring Authorization Server) | **完了** (tag: `m2-spring-authorization-server`) |
 | **M3** (横断機能: Permissions / Settings / Features / Audit / Jobs / BLOB / i18n) | **未着手** |
 | **M4** (コアドメイン移植) | **Projects のみ in-memory mock 実装** (DDD レイヤー未経由・要 M1〜M3 完了後に本実装へ置換) |
 | **M5** (フロントエンド基盤) | **部分的** (Vite + React 19 + TS + Ant Design 6 + React Router 7 完了。Zustand / TanStack Query / oidc-client-ts / Zod + React Hook Form / OpenAPI 自動生成 **未追加**) |
@@ -185,7 +185,7 @@ application ──→ infrastructure ──→ host
 
 ### 5.3 進行順序の逸脱メモ
 
-Plan の正規順序は M0 → M1 → M2 → M3 → M4 → M5 → M6 → M7 ですが、現状は M0 完了後に **M5(部分) → M4(Projects mock) → M6(Projects 画面)** の順で前倒しが行われています。M1〜M3 (認証・マルチテナント・横断機能) を抜かしているため、Projects 関連の実装は本実装段階で広範な手直しが発生します。M1 (Identity + Multi-Tenancy) は完了。次は **M2 (Spring Authorization Server)** に進む。
+Plan の正規順序は M0 → M1 → M2 → M3 → M4 → M5 → M6 → M7 ですが、現状は M0 完了後に **M5(部分) → M4(Projects mock) → M6(Projects 画面)** の順で前倒しが行われています。M1〜M3 (認証・マルチテナント・横断機能) を抜かしているため、Projects 関連の実装は本実装段階で広範な手直しが発生します。M1 (Identity + Multi-Tenancy)・M2 (Spring Authorization Server) は完了。次は **M3 (横断機能)** に進む。
 
 ### 5.4 将来課題 (今回スコープ外、後続で対応)
 
