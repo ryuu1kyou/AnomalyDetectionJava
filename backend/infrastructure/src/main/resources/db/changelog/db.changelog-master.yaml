@@ -23,3 +23,5 @@ databaseChangeLog:
       file: classpath:db/changelog/010-blob.yaml
   - include:
       file: classpath:db/changelog/011-cansspecification.yaml
+  - include:
+      file: classpath:db/changelog/012-cansignals.yaml

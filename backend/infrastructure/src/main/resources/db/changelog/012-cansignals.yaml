@@ -1,0 +1,76 @@
+databaseChangeLog:
+  - logicalFilePath: db/changelog/012-cansignals.yaml
+
+  - changeSet:
+      id: 012-create-can-signals
+      author: m4-cansignals
+      comment: "CAN signal definitions table"
+      changes:
+        - createTable:
+            tableName: can_signals
+            columns:
+              - column:
+                  name: id
+                  type: BINARY(16)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: tenant_id
+                  type: BINARY(16)
+              - column:
+                  name: frame_id
+                  type: INT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: name
+                  type: VARCHAR(256)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: description
+                  type: VARCHAR(512)
+              - column:
+                  name: start_bit
+                  type: INT
+              - column:
+                  name: length
+                  type: INT
+              - column:
+                  name: byte_order
+                  type: VARCHAR(16)
+              - column:
+                  name: is_signed
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+              - column:
+                  name: specification_id
+                  type: BINARY(16)
+              # FullAuditedEntity columns
+              - column:
+                  name: created_at
+                  type: datetime(6)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_by
+                  type: BINARY(16)
+              - column:
+                  name: last_modified_at
+                  type: datetime(6)
+              - column:
+                  name: last_modified_by
+                  type: BINARY(16)
+              - column:
+                  name: is_deleted
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: deleted_at
+                  type: datetime(6)
+              - column:
+                  name: deleted_by
+                  type: BINARY(16)
