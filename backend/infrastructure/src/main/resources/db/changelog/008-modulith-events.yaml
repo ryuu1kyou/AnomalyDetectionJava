@@ -1,0 +1,38 @@
+databaseChangeLog:
+  - logicalFilePath: db/changelog/008-modulith-events.yaml
+
+  - changeSet:
+      id: 008-001-event-publication
+      author: m3-crosscutting
+      comment: "Spring Modulith event publication table"
+      changes:
+        - createTable:
+            tableName: event_publication
+            columns:
+              - column:
+                  name: id
+                  type: VARCHAR(36)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: listener_id
+                  type: VARCHAR(512)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: event_type
+                  type: VARCHAR(512)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: serialized_event
+                  type: LONGTEXT
+              - column:
+                  name: publication_date
+                  type: DATETIME(3)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: completion_date
+                  type: DATETIME(3)

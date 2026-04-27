@@ -12,10 +12,8 @@ import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.oauth2.core.oidc.endpoint.OidcParameterNames;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationService;
-import org.springframework.security.oauth2.server.authorization.OAuth2TokenType;
 import org.springframework.security.oauth2.server.authorization.client.JdbcRegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.config.annotation.web.configuration.OAuth2AuthorizationServerConfiguration;
@@ -24,8 +22,6 @@ import org.springframework.security.oauth2.server.authorization.JdbcOAuth2Author
 import org.springframework.security.oauth2.server.authorization.JdbcOAuth2AuthorizationService;
 import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationConsentService;
 import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings;
-import org.springframework.security.oauth2.server.authorization.token.JwtEncodingContext;
-import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenCustomizer;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
@@ -83,18 +79,5 @@ public class AuthorizationServerConfig {
     return AuthorizationServerSettings.builder()
         .issuer("http://localhost:44397")
         .build();
-  }
-
-  @Bean
-  public OAuth2TokenCustomizer<JwtEncodingContext> tokenCustomizer() {
-    return context -> {
-      String principalName = context.getPrincipal().getName();
-      if (OidcParameterNames.ID_TOKEN.equals(context.getTokenType().getValue())) {
-        context.getClaims().claim("name", principalName);
-      }
-      if (OAuth2TokenType.ACCESS_TOKEN.equals(context.getTokenType())) {
-        context.getClaims().claim("username", principalName);
-      }
-    };
   }
 }

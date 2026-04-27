@@ -5,8 +5,10 @@ import com.anomalydetection.domain.identity.RoleRepository;
 import com.anomalydetection.domain.identity.User;
 import com.anomalydetection.domain.identity.UserRepository;
 import com.anomalydetection.domain.multitenancy.Tenant;
+import com.anomalydetection.application.permissions.PermissionManager;
 import com.anomalydetection.domain.multitenancy.TenantRepository;
 import java.time.Duration;
+import java.util.List;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,18 +41,21 @@ public class SeedDataInitializer implements ApplicationRunner {
   private final RoleRepository roleRepository;
   private final PasswordEncoder passwordEncoder;
   private final JdbcTemplate jdbcTemplate;
+  private final PermissionManager permissionManager;
 
   public SeedDataInitializer(
       TenantRepository tenantRepository,
       UserRepository userRepository,
       RoleRepository roleRepository,
       PasswordEncoder passwordEncoder,
-      JdbcTemplate jdbcTemplate) {
+      JdbcTemplate jdbcTemplate,
+      PermissionManager permissionManager) {
     this.tenantRepository = tenantRepository;
     this.userRepository = userRepository;
     this.roleRepository = roleRepository;
     this.passwordEncoder = passwordEncoder;
     this.jdbcTemplate = jdbcTemplate;
+    this.permissionManager = permissionManager;
   }
 
   @Override
@@ -60,6 +65,7 @@ public class SeedDataInitializer implements ApplicationRunner {
     seedAdminRole();
     seedAdminUser();
     seedOAuth2SpaClient();
+    seedAdminRolePermissions();
   }
 
   private void seedDefaultTenant() {
@@ -132,5 +138,26 @@ public class SeedDataInitializer implements ApplicationRunner {
             .build();
     repo.save(spaClient);
     log.info("Created OAuth2 SPA client: {}", SPA_CLIENT_ID);
+  }
+
+  private void seedAdminRolePermissions() {
+    var allPermissions = List.of(
+        com.anomalydetection.contracts.identity.IdentityPermissions.USERS_VIEW,
+        com.anomalydetection.contracts.identity.IdentityPermissions.USERS_CREATE,
+        com.anomalydetection.contracts.identity.IdentityPermissions.USERS_EDIT,
+        com.anomalydetection.contracts.identity.IdentityPermissions.USERS_DELETE,
+        com.anomalydetection.contracts.identity.IdentityPermissions.ROLES_VIEW,
+        com.anomalydetection.contracts.identity.IdentityPermissions.ROLES_CREATE,
+        com.anomalydetection.contracts.identity.IdentityPermissions.ROLES_EDIT,
+        com.anomalydetection.contracts.identity.IdentityPermissions.ROLES_DELETE,
+        com.anomalydetection.contracts.identity.IdentityPermissions.TENANTS_VIEW,
+        com.anomalydetection.contracts.identity.IdentityPermissions.TENANTS_CREATE,
+        com.anomalydetection.contracts.identity.IdentityPermissions.TENANTS_EDIT,
+        com.anomalydetection.contracts.identity.IdentityPermissions.TENANTS_DELETE
+    );
+    for (String perm : allPermissions) {
+      permissionManager.grantToRole(perm, ADMIN_ROLE_NAME, null);
+    }
+    log.info("Seeded {} permissions for admin role", allPermissions.size());
   }
 }

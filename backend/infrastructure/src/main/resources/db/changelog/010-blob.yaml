@@ -1,0 +1,44 @@
+databaseChangeLog:
+  - logicalFilePath: db/changelog/010-blob.yaml
+
+  - changeSet:
+      id: 010-001-blobs
+      author: m3-crosscutting
+      comment: "BLOB metadata and content storage"
+      changes:
+        - createTable:
+            tableName: blobs
+            columns:
+              - column:
+                  name: id
+                  type: BINARY(16)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: container_name
+                  type: VARCHAR(256)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: blob_name
+                  type: VARCHAR(1024)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: tenant_id
+                  type: BINARY(16)
+              - column:
+                  name: mime_type
+                  type: VARCHAR(256)
+              - column:
+                  name: size_bytes
+                  type: BIGINT
+              - column:
+                  name: content
+                  type: LONGBLOB
+              - column:
+                  name: created_at
+                  type: DATETIME(3)
+                  constraints:
+                    nullable: false

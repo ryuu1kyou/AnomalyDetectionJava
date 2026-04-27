@@ -1,0 +1,32 @@
+databaseChangeLog:
+  - logicalFilePath: db/changelog/009-shedlock.yaml
+
+  - changeSet:
+      id: 009-001-shedlock
+      author: m3-crosscutting
+      comment: "ShedLock distributed lock table"
+      changes:
+        - createTable:
+            tableName: shedlock
+            columns:
+              - column:
+                  name: name
+                  type: VARCHAR(64)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: lock_until
+                  type: TIMESTAMP(3)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: locked_at
+                  type: TIMESTAMP(3)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: locked_by
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false

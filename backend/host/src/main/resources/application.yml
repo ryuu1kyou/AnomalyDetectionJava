@@ -16,6 +16,19 @@ spring:
     oauth2:
       authorizationserver:
         issuer: ${AUTH_SERVER_ISSUER:http://localhost:44397}
+  cache:
+    type: caffeine
+    caffeine:
+      spec: expireAfterWrite=5m,maximumSize=1000
+  messages:
+    basename: i18n/messages
+    encoding: UTF-8
+  quartz:
+    job-store-type: memory
+    properties:
+      org.quartz.scheduler.instanceName: AnomalyDetectionScheduler
+      org.quartz.scheduler.instanceId: AUTO
+      org.quartz.threadPool.threadCount: 5
 
 server:
   port: 44397

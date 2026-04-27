@@ -1,0 +1,38 @@
+databaseChangeLog:
+  - logicalFilePath: db/changelog/005-settings.yaml
+
+  - changeSet:
+      id: 005-001-settings
+      author: m3-crosscutting
+      comment: "Key-value settings with Global/Tenant/User scopes"
+      changes:
+        - createTable:
+            tableName: settings
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: name
+                  type: VARCHAR(128)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: value
+                  type: LONGTEXT
+              - column:
+                  name: provider_name
+                  type: VARCHAR(64)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: provider_key
+                  type: VARCHAR(64)
+        - addUniqueConstraint:
+            tableName: settings
+            columnNames: name, provider_name, provider_key
+            constraintName: uq_settings

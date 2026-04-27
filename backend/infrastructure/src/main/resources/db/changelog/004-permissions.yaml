@@ -1,0 +1,37 @@
+databaseChangeLog:
+  - logicalFilePath: db/changelog/004-permissions.yaml
+
+  - changeSet:
+      id: 004-001-permission-grants
+      author: m3-crosscutting
+      comment: "Permission grants — stores which role/user holds which named permission"
+      changes:
+        - createTable:
+            tableName: permission_grants
+            columns:
+              - column:
+                  name: id
+                  type: VARCHAR(36)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: name
+                  type: VARCHAR(128)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: provider_name
+                  type: VARCHAR(64)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: provider_key
+                  type: VARCHAR(64)
+              - column:
+                  name: tenant_id
+                  type: BINARY(16)
+        - addUniqueConstraint:
+            tableName: permission_grants
+            columnNames: name, provider_name, provider_key, tenant_id
+            constraintName: uq_permission_grants

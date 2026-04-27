@@ -41,11 +41,15 @@ public abstract class FullAuditedEntity<ID extends Serializable> extends Aggrega
   @jakarta.persistence.PrePersist
   protected void prePersist() {
     createdAt = Instant.now();
+    if (createdBy == null) {
+      createdBy = com.anomalydetection.shared.CurrentUserIdHolder.getUserId().orElse(null);
+    }
   }
 
   @jakarta.persistence.PreUpdate
   protected void preUpdate() {
     lastModifiedAt = Instant.now();
+    lastModifiedBy = com.anomalydetection.shared.CurrentUserIdHolder.getUserId().orElse(null);
   }
 
   // --- soft-delete support ---

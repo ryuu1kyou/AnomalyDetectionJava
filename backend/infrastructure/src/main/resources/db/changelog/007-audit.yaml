@@ -1,0 +1,49 @@
+databaseChangeLog:
+  - logicalFilePath: db/changelog/007-audit.yaml
+
+  - changeSet:
+      id: 007-001-audit-logs
+      author: m3-crosscutting
+      comment: "Request-level audit log for API calls"
+      changes:
+        - createTable:
+            tableName: audit_logs
+            columns:
+              - column:
+                  name: id
+                  type: BINARY(16)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: BINARY(16)
+              - column:
+                  name: user_name
+                  type: VARCHAR(256)
+              - column:
+                  name: tenant_id
+                  type: BINARY(16)
+              - column:
+                  name: http_method
+                  type: VARCHAR(16)
+              - column:
+                  name: url
+                  type: VARCHAR(2048)
+              - column:
+                  name: action_name
+                  type: VARCHAR(256)
+              - column:
+                  name: http_status_code
+                  type: INT
+              - column:
+                  name: execution_duration
+                  type: BIGINT
+              - column:
+                  name: occurred_at
+                  type: DATETIME(3)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: exceptions
+                  type: LONGTEXT

@@ -1,0 +1,40 @@
+databaseChangeLog:
+  - logicalFilePath: db/changelog/006-features.yaml
+
+  - changeSet:
+      id: 006-001-feature-values
+      author: m3-crosscutting
+      comment: "Feature flag values per provider (Global/Tenant)"
+      changes:
+        - createTable:
+            tableName: feature_values
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: name
+                  type: VARCHAR(128)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: value
+                  type: VARCHAR(512)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: provider_name
+                  type: VARCHAR(64)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: provider_key
+                  type: VARCHAR(64)
+        - addUniqueConstraint:
+            tableName: feature_values
+            columnNames: name, provider_name, provider_key
+            constraintName: uq_feature_values

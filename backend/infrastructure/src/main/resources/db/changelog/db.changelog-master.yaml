@@ -7,3 +7,17 @@ databaseChangeLog:
       file: classpath:db/changelog/002-multitenancy.yaml
   - include:
       file: classpath:db/changelog/003-oauth2-authorization-server.yaml
+  - include:
+      file: classpath:db/changelog/004-permissions.yaml
+  - include:
+      file: classpath:db/changelog/005-settings.yaml
+  - include:
+      file: classpath:db/changelog/006-features.yaml
+  - include:
+      file: classpath:db/changelog/007-audit.yaml
+  - include:
+      file: classpath:db/changelog/008-modulith-events.yaml
+  - include:
+      file: classpath:db/changelog/009-shedlock.yaml
+  - include:
+      file: classpath:db/changelog/010-blob.yaml
