@@ -1,5 +1,6 @@
 package com.anomalydetection.infrastructure;
 
+import com.anomalydetection.domain.similarpatternsearch.SimilarPatternSearchService;
 import com.anomalydetection.infrastructure.multitenancy.TenantAwareHibernateJpaDialect;
 import java.util.List;
 import java.util.Locale;
@@ -20,6 +21,11 @@ import org.springframework.web.servlet.i18n.AcceptHeaderLocaleResolver;
 @EnableCaching
 @EnableJpaRepositories(basePackages = "com.anomalydetection.infrastructure")
 public class InfrastructureConfiguration {
+
+  @Bean
+  public SimilarPatternSearchService similarPatternSearchService() {
+    return new SimilarPatternSearchService();
+  }
 
   @Bean
   public LocaleResolver localeResolver() {
