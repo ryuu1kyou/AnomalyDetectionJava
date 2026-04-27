@@ -6,12 +6,21 @@ import com.anomalydetection.domain.identity.User;
 import com.anomalydetection.domain.identity.UserRepository;
 import com.anomalydetection.domain.multitenancy.Tenant;
 import com.anomalydetection.domain.multitenancy.TenantRepository;
+import java.time.Duration;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.core.AuthorizationGrantType;
+import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
+import org.springframework.security.oauth2.core.oidc.OidcScopes;
+import org.springframework.security.oauth2.server.authorization.client.JdbcRegisteredClientRepository;
+import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
+import org.springframework.security.oauth2.server.authorization.settings.ClientSettings;
+import org.springframework.security.oauth2.server.authorization.settings.TokenSettings;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,21 +32,25 @@ public class SeedDataInitializer implements ApplicationRunner {
   static final String DEFAULT_TENANT_NAME = "Default";
   static final String ADMIN_USERNAME = "admin";
   static final String ADMIN_ROLE_NAME = "admin";
+  static final String SPA_CLIENT_ID = "anomaly-detection-spa";
 
   private final TenantRepository tenantRepository;
   private final UserRepository userRepository;
   private final RoleRepository roleRepository;
   private final PasswordEncoder passwordEncoder;
+  private final JdbcTemplate jdbcTemplate;
 
   public SeedDataInitializer(
       TenantRepository tenantRepository,
       UserRepository userRepository,
       RoleRepository roleRepository,
-      PasswordEncoder passwordEncoder) {
+      PasswordEncoder passwordEncoder,
+      JdbcTemplate jdbcTemplate) {
     this.tenantRepository = tenantRepository;
     this.userRepository = userRepository;
     this.roleRepository = roleRepository;
     this.passwordEncoder = passwordEncoder;
+    this.jdbcTemplate = jdbcTemplate;
   }
 
   @Override
@@ -46,6 +59,7 @@ public class SeedDataInitializer implements ApplicationRunner {
     seedDefaultTenant();
     seedAdminRole();
     seedAdminUser();
+    seedOAuth2SpaClient();
   }
 
   private void seedDefaultTenant() {
@@ -83,5 +97,40 @@ public class SeedDataInitializer implements ApplicationRunner {
     user.setEmailConfirmed(true);
     userRepository.save(user);
     log.info("Created admin user (password from ADMIN_PASSWORD env, default Admin@1234)");
+  }
+
+  private void seedOAuth2SpaClient() {
+    var repo = new JdbcRegisteredClientRepository(jdbcTemplate);
+    if (repo.findByClientId(SPA_CLIENT_ID) != null) {
+      log.info("OAuth2 SPA client already exists - skipping");
+      return;
+    }
+    RegisteredClient spaClient =
+        RegisteredClient.withId(UUID.randomUUID().toString())
+            .clientId(SPA_CLIENT_ID)
+            .clientName("Anomaly Detection SPA")
+            .clientAuthenticationMethod(ClientAuthenticationMethod.NONE)
+            .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+            .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
+            .redirectUri("http://localhost:5173/callback")
+            .redirectUri("http://localhost:5173/silent-renew.html")
+            .postLogoutRedirectUri("http://localhost:5173")
+            .scope(OidcScopes.OPENID)
+            .scope(OidcScopes.PROFILE)
+            .scope(OidcScopes.EMAIL)
+            .clientSettings(
+                ClientSettings.builder()
+                    .requireProofKey(true)
+                    .requireAuthorizationConsent(false)
+                    .build())
+            .tokenSettings(
+                TokenSettings.builder()
+                    .accessTokenTimeToLive(Duration.ofHours(1))
+                    .refreshTokenTimeToLive(Duration.ofDays(30))
+                    .reuseRefreshTokens(false)
+                    .build())
+            .build();
+    repo.save(spaClient);
+    log.info("Created OAuth2 SPA client: {}", SPA_CLIENT_ID);
   }
 }
