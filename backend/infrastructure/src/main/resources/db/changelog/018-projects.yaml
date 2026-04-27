@@ -1,0 +1,361 @@
+databaseChangeLog:
+  - logicalFilePath: db/changelog/018-projects.yaml
+
+  - changeSet:
+      id: 018-001-anomaly-detection-projects
+      author: m4-projects
+      comment: "AnomalyDetectionProject aggregate"
+      changes:
+        - createTable:
+            tableName: anomaly_detection_projects
+            columns:
+              - column:
+                  name: id
+                  type: BINARY(16)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: tenant_id
+                  type: BINARY(16)
+              - column:
+                  name: project_code
+                  type: VARCHAR(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: name
+                  type: VARCHAR(200)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: description
+                  type: VARCHAR(2000)
+              - column:
+                  name: status
+                  type: VARCHAR(32)
+                  defaultValue: "Planning"
+                  constraints:
+                    nullable: false
+              - column:
+                  name: vehicle_model
+                  type: VARCHAR(100)
+              - column:
+                  name: model_year
+                  type: VARCHAR(10)
+              - column:
+                  name: platform
+                  type: VARCHAR(100)
+              - column:
+                  name: primary_system
+                  type: VARCHAR(100)
+              - column:
+                  name: target_market
+                  type: VARCHAR(100)
+              - column:
+                  name: oem_code
+                  type: VARCHAR(100)
+              - column:
+                  name: oem_name
+                  type: VARCHAR(200)
+              - column:
+                  name: start_date
+                  type: DATE
+              - column:
+                  name: planned_end_date
+                  type: DATE
+              - column:
+                  name: actual_end_date
+                  type: DATE
+              - column:
+                  name: progress_percentage
+                  type: INT
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+              - column:
+                  name: project_manager_id
+                  type: BINARY(16)
+              - column:
+                  name: priority
+                  type: VARCHAR(16)
+                  defaultValue: "Medium"
+                  constraints:
+                    nullable: false
+              - column:
+                  name: is_confidential
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: notes
+                  type: VARCHAR(2000)
+              - column:
+                  name: total_detection_logics
+                  type: INT
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+              - column:
+                  name: total_can_signals
+                  type: INT
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+              - column:
+                  name: total_anomalies
+                  type: INT
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+              - column:
+                  name: resolved_anomalies
+                  type: INT
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+              # FullAuditedEntity columns
+              - column:
+                  name: created_at
+                  type: datetime(6)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_by
+                  type: BINARY(16)
+              - column:
+                  name: last_modified_at
+                  type: datetime(6)
+              - column:
+                  name: last_modified_by
+                  type: BINARY(16)
+              - column:
+                  name: is_deleted
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: deleted_at
+                  type: datetime(6)
+              - column:
+                  name: deleted_by
+                  type: BINARY(16)
+
+        - createIndex:
+            tableName: anomaly_detection_projects
+            indexName: idx_adp_tenant_id
+            columns:
+              - column:
+                  name: tenant_id
+        - createIndex:
+            tableName: anomaly_detection_projects
+            indexName: idx_adp_status
+            columns:
+              - column:
+                  name: status
+        - createIndex:
+            tableName: anomaly_detection_projects
+            indexName: idx_adp_project_code
+            unique: true
+            columns:
+              - column:
+                  name: project_code
+
+  - changeSet:
+      id: 018-002-project-milestones
+      author: m4-projects
+      comment: "ProjectMilestone entity"
+      changes:
+        - createTable:
+            tableName: project_milestones
+            columns:
+              - column:
+                  name: id
+                  type: BINARY(16)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: project_id
+                  type: BINARY(16)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: tenant_id
+                  type: BINARY(16)
+              - column:
+                  name: name
+                  type: VARCHAR(200)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: description
+                  type: VARCHAR(2000)
+              - column:
+                  name: planned_date
+                  type: DATE
+              - column:
+                  name: actual_date
+                  type: DATE
+              - column:
+                  name: status
+                  type: VARCHAR(32)
+                  defaultValue: "NotStarted"
+                  constraints:
+                    nullable: false
+              - column:
+                  name: progress_percentage
+                  type: INT
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+              - column:
+                  name: display_order
+                  type: INT
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+              - column:
+                  name: dependencies
+                  type: LONGTEXT
+              - column:
+                  name: deliverables
+                  type: LONGTEXT
+              # FullAuditedEntity columns
+              - column:
+                  name: created_at
+                  type: datetime(6)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_by
+                  type: BINARY(16)
+              - column:
+                  name: last_modified_at
+                  type: datetime(6)
+              - column:
+                  name: last_modified_by
+                  type: BINARY(16)
+              - column:
+                  name: is_deleted
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: deleted_at
+                  type: datetime(6)
+              - column:
+                  name: deleted_by
+                  type: BINARY(16)
+
+        - createIndex:
+            tableName: project_milestones
+            indexName: idx_pm_project_id
+            columns:
+              - column:
+                  name: project_id
+
+  - changeSet:
+      id: 018-003-project-members
+      author: m4-projects
+      comment: "ProjectMember entity"
+      changes:
+        - createTable:
+            tableName: project_members
+            columns:
+              - column:
+                  name: id
+                  type: BINARY(16)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: project_id
+                  type: BINARY(16)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: tenant_id
+                  type: BINARY(16)
+              - column:
+                  name: user_id
+                  type: BINARY(16)
+              - column:
+                  name: user_name
+                  type: VARCHAR(200)
+              - column:
+                  name: email
+                  type: VARCHAR(200)
+              - column:
+                  name: role
+                  type: VARCHAR(50)
+              - column:
+                  name: responsibilities
+                  type: LONGTEXT
+              - column:
+                  name: joined_date
+                  type: DATE
+              - column:
+                  name: left_date
+                  type: DATE
+              - column:
+                  name: is_active
+                  type: BOOLEAN
+                  defaultValueBoolean: true
+                  constraints:
+                    nullable: false
+              - column:
+                  name: can_edit
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: can_delete
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: can_manage_members
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              # FullAuditedEntity columns
+              - column:
+                  name: created_at
+                  type: datetime(6)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_by
+                  type: BINARY(16)
+              - column:
+                  name: last_modified_at
+                  type: datetime(6)
+              - column:
+                  name: last_modified_by
+                  type: BINARY(16)
+              - column:
+                  name: is_deleted
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: deleted_at
+                  type: datetime(6)
+              - column:
+                  name: deleted_by
+                  type: BINARY(16)
+
+        - createIndex:
+            tableName: project_members
+            indexName: idx_pmb_project_id
+            columns:
+              - column:
+                  name: project_id

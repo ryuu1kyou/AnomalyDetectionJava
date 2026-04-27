@@ -35,3 +35,5 @@ databaseChangeLog:
       file: classpath:db/changelog/013-detectiontemplates.yaml
   - include:
       file: classpath:db/changelog/017-anomalydetection.yaml
+  - include:
+      file: classpath:db/changelog/018-projects.yaml
