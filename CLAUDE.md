@@ -155,7 +155,7 @@ application ──→ infrastructure ──→ host
 
 ## 5. 開発ステータス
 
-最終更新: 2026-04-27
+最終更新: 2026-04-28
 
 ### 5.1 マイルストーン進捗
 
@@ -168,7 +168,7 @@ application ──→ infrastructure ──→ host
 | **M1** (Identity + Multi-Tenancy) | **完了** (tag: `m1-identity-multitenancy`) |
 | **M2** (Spring Authorization Server) | **完了** (tag: `m2-spring-authorization-server`) |
 | **M3** (横断機能: Permissions / Settings / Features / Audit / Jobs / BLOB / i18n) | **未着手** |
-| **M4** (コアドメイン移植) | **Projects のみ in-memory mock 実装** (DDD レイヤー未経由・要 M1〜M3 完了後に本実装へ置換) |
+| **M4** (コアドメイン移植) | **完了** (全10モジュール: CanSignal, CanSignalSpecification, DetectionTemplates, AnomalyDetection, Projects, Safety, KnowledgeBase, OemTraceability, SimilarPatternSearch, Integration) |
 | **M5** (フロントエンド基盤) | **部分的** (Vite + React 19 + TS + Ant Design 6 + React Router 7 完了。Zustand / TanStack Query / oidc-client-ts / Zod + React Hook Form / OpenAPI 自動生成 **未追加**) |
 | **M6** (フロントエンド機能ページ) | **Projects 一覧/詳細のみ** (mock-first + backend-fallback) |
 | **M7** (システム/性能テスト) | **未着手** |
