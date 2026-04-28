@@ -1,0 +1,10 @@
+<!doctype html>
+<html>
+  <body>
+    <script>
+      import('oidc-client-ts').then(({ UserManager }) => {
+        new UserManager({}).signinSilentCallback()
+      })
+    </script>
+  </body>
+</html>

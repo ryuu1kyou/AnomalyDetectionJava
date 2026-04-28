@@ -6,27 +6,12 @@ databaseChangeLog:
       author: m3-crosscutting
       comment: "ShedLock distributed lock table"
       changes:
-        - createTable:
-            tableName: shedlock
-            columns:
-              - column:
-                  name: name
-                  type: VARCHAR(64)
-                  constraints:
-                    primaryKey: true
-                    nullable: false
-              - column:
-                  name: lock_until
-                  type: TIMESTAMP(3)
-                  constraints:
-                    nullable: false
-              - column:
-                  name: locked_at
-                  type: TIMESTAMP(3)
-                  constraints:
-                    nullable: false
-              - column:
-                  name: locked_by
-                  type: VARCHAR(255)
-                  constraints:
-                    nullable: false
+        - sql:
+            sql: >
+              CREATE TABLE shedlock (
+                name VARCHAR(64) NOT NULL,
+                lock_until TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+                locked_at TIMESTAMP(3) NOT NULL DEFAULT '2000-01-01 00:00:00.000',
+                locked_by VARCHAR(255) NOT NULL,
+                PRIMARY KEY (name)
+              )

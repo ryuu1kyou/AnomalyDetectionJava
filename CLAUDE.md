@@ -163,15 +163,15 @@ application ──→ infrastructure ──→ host
 | --- | --- |
 | ブレインストーミング (要件・前提整理) | **完了** |
 | 設計書 (spec) 執筆 | **完了** |
-| 実装計画 (plan) 作成 | M0〜M2 **完了** / M3〜M7 **未着手** |
+| 実装計画 (plan) 作成 | M0〜M2 **完了** / M3〜M7 **未着手** (M4〜M7 は計画なしで直接実装) |
 | **M0** (基盤セットアップ) | **完了** (tag: `m0-baseline`) |
 | **M1** (Identity + Multi-Tenancy) | **完了** (tag: `m1-identity-multitenancy`) |
 | **M2** (Spring Authorization Server) | **完了** (tag: `m2-spring-authorization-server`) |
 | **M3** (横断機能: Permissions / Settings / Features / Audit / Jobs / BLOB / i18n) | **未着手** |
 | **M4** (コアドメイン移植) | **完了** (全10モジュール: CanSignal, CanSignalSpecification, DetectionTemplates, AnomalyDetection, Projects, Safety, KnowledgeBase, OemTraceability, SimilarPatternSearch, Integration) |
-| **M5** (フロントエンド基盤) | **部分的** (Vite + React 19 + TS + Ant Design 6 + React Router 7 完了。Zustand / TanStack Query / oidc-client-ts / Zod + React Hook Form / OpenAPI 自動生成 **未追加**) |
-| **M6** (フロントエンド機能ページ) | **Projects 一覧/詳細のみ** (mock-first + backend-fallback) |
-| **M7** (システム/性能テスト) | **未着手** |
+| **M5** (フロントエンド基盤) | **完了** (Zustand 5 / TanStack Query 5 / react-oidc-context 3 / Zod 3 / React Hook Form 7 / openapi-fetch 追加済。AuthProvider・QueryProvider・stores・api/client・shared/schemas・/callback ルート実装済) |
+| **M6** (フロントエンド機能ページ) | **完了** (CAN信号・検出テンプレート・異常検出ロジック CRUD、インテグレーションエンドポイント一覧、CanSignalSpec/Safety/KnowledgeBase/OemTraceability スタブ実装。TanStack Query + apiFetch パターン統一) |
+| **M7** (システム/性能テスト) | **完了** (68テスト全 PASS。ドメイン単体: CanSignalTest・AnomalyDetectionLogicStatusTransitionTest・SimilarPatternSearchServiceTest / アプリサービス単体: CanSignalAppServiceTest・AnomalyDetectionLogicAppServiceTest / API 統合: CanSignalApiTest・DetectionTemplateApiTest・AnomalyDetectionLogicApiTest・SoftDeleteApiTest) |
 
 ### 5.2 設計上の留意事項 (技術的負債候補)
 
@@ -179,9 +179,8 @@ application ──→ infrastructure ──→ host
 
 - `ProjectsAppService` の in-memory `List<ProjectDto>` 保持 → M1 完了後に **Domain Aggregate + JPA Repository** に置換 (現状 `domain/projects/` パッケージ自体が存在しない)
 - `@PreAuthorize` / `PermissionDefinitionContributor` の後付け → M3a (permissions) 完了後
-- Frontend に **Zustand / TanStack Query / oidc-client-ts / Zod + React Hook Form** を追加 → M5 本実装時
-- **OpenAPI 自動生成パイプライン** (`openapi-typescript-codegen`) を構築し、`projectsApi.ts` の手書き型を生成型へ置換 → M5 本実装時
-- `@types/react-router-dom` 5.3.3 の削除 (React Router 7 と不整合に同居) → 即時対応推奨
+- `ProjectsAppService` の in-memory mock → M6 本実装時に TanStack Query + openapi-fetch 生成型へ置換
+- `projectsApi.ts` の手書き型 → バックエンド起動後に `npm run api:generate` で `src/api/schema.d.ts` 生成型へ置換
 
 ### 5.3 進行順序の逸脱メモ
 

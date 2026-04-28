@@ -25,16 +25,15 @@ public class TenantAwareHibernateJpaDialect extends HibernateJpaDialect {
 
   private void enableTenantFilter(EntityManager em) {
     CurrentTenantHolder holder = TenantContextHolderProvider.getHolder();
-    if (holder == null || !holder.isSet()) {
-      return;
-    }
+    if (holder == null) return;
     try {
+      if (!holder.isSet()) return;
       Session session = em.unwrap(Session.class);
       session.enableFilter(FILTER_NAME)
           .setParameter(PARAM_TENANT_ID, holder.getTenantId().get().toString());
       log.trace("Tenant filter enabled for tenant {}", holder.getTenantId().get());
     } catch (Exception e) {
-      log.warn("Failed to enable tenant filter: {}", e.getMessage());
+      log.trace("Tenant filter not applied (no active request context): {}", e.getMessage());
     }
   }
 }

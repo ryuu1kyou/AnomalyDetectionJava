@@ -5,6 +5,7 @@ import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
+import java.util.List;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -25,6 +26,9 @@ import org.springframework.security.oauth2.server.authorization.settings.Authori
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @Configuration
 public class AuthorizationServerConfig {
@@ -37,6 +41,7 @@ public class AuthorizationServerConfig {
     http.getConfigurer(OAuth2AuthorizationServerConfigurer.class)
         .oidc(Customizer.withDefaults());
     http
+        .cors(cors -> cors.configurationSource(authServerCorsSource()))
         .exceptionHandling(
             ex ->
                 ex.defaultAuthenticationEntryPointFor(
@@ -44,6 +49,17 @@ public class AuthorizationServerConfig {
                     new MediaTypeRequestMatcher(MediaType.TEXT_HTML)))
         .oauth2ResourceServer(rs -> rs.jwt(Customizer.withDefaults()));
     return http.build();
+  }
+
+  private CorsConfigurationSource authServerCorsSource() {
+    var config = new CorsConfiguration();
+    config.setAllowedOrigins(List.of("http://localhost:5173"));
+    config.setAllowedMethods(List.of("GET", "POST", "OPTIONS"));
+    config.setAllowedHeaders(List.of("*"));
+    config.setAllowCredentials(true);
+    var source = new UrlBasedCorsConfigurationSource();
+    source.registerCorsConfiguration("/**", config);
+    return source;
   }
 
   @Bean
