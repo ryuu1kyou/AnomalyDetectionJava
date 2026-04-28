@@ -142,3 +142,40 @@ export interface UpdateProjectMemberDto {
   canManageMembers: boolean
   isActive: boolean
 }
+
+export interface CreateProjectDto {
+  projectCode: string
+  projectName: string
+  description?: string
+  vehicleModel?: string
+  modelYear?: string
+  platform?: string
+  primarySystem?: string
+  targetMarket?: string
+  status?: ProjectStatus
+  priority?: ProjectPriority
+  startDate?: string
+  plannedEndDate?: string
+  oemCode?: string
+  oemName?: string
+  notes?: string
+}
+
+export interface UpdateProjectDto {
+  projectName: string
+  description?: string
+  vehicleModel?: string
+  modelYear?: string
+  platform?: string
+  primarySystem?: string
+  targetMarket?: string
+  status?: ProjectStatus
+  priority?: ProjectPriority
+  startDate?: string
+  plannedEndDate?: string
+  actualEndDate?: string
+  progressPercentage: number
+  oemCode?: string
+  oemName?: string
+  notes?: string
+}

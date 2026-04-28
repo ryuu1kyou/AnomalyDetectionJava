@@ -4,6 +4,7 @@ import {
   Col,
   Form,
   Input,
+  Modal,
   Progress,
   Row,
   Select,
@@ -20,7 +21,7 @@ import { Link } from 'react-router-dom'
 import dayjs from 'dayjs'
 import { projectsApi } from '../api/projectsApi'
 import { ProjectPriority, ProjectStatus } from '../models/project'
-import type { GetProjectsInput, Project, ProjectsQuery } from '../models/project'
+import type { CreateProjectDto, GetProjectsInput, Project, ProjectsQuery } from '../models/project'
 
 function statusLabel(status: ProjectStatus): string {
   switch (status) {
@@ -68,6 +69,7 @@ function priorityLabel(priority: ProjectPriority): string {
 
 export default function ProjectListPage() {
   const [form] = Form.useForm<ProjectsQuery>()
+  const [createForm] = Form.useForm<CreateProjectDto>()
   const [selectedRowKeys, setSelectedRowKeys] = useState<Key[]>([])
   const [loading, setLoading] = useState(false)
   const [data, setData] = useState<Project[]>([])
@@ -77,6 +79,8 @@ export default function ProjectListPage() {
   const [sortField, setSortField] = useState<string | undefined>('projectCode')
   const [sortOrder, setSortOrder] = useState<'ascend' | 'descend' | null>('ascend')
   const debounceTimerRef = useRef<number | null>(null)
+  const [createModalOpen, setCreateModalOpen] = useState(false)
+  const [creating, setCreating] = useState(false)
 
   const columns: ColumnsType<Project> = [
     {
@@ -323,11 +327,14 @@ export default function ProjectListPage() {
                 <Button type="primary" onClick={() => void reload()}>
                   更新
                 </Button>
-                <Button type="dashed" disabled>
-                  新規（後で実装）
-                </Button>
-                <Button disabled={selectedRowKeys.length === 0}>
-                  一括操作（後で実装）
+                <Button
+                  type="primary"
+                  onClick={() => {
+                    createForm.resetFields()
+                    setCreateModalOpen(true)
+                  }}
+                >
+                  新規
                 </Button>
               </Space>
             </Col>
@@ -370,6 +377,106 @@ export default function ProjectListPage() {
           />
         </div>
       </Card>
+
+      <Modal
+        open={createModalOpen}
+        onCancel={() => setCreateModalOpen(false)}
+        title="プロジェクト新規作成"
+        confirmLoading={creating}
+        okText="作成"
+        onOk={async () => {
+          const values = await createForm.validateFields()
+          setCreating(true)
+          try {
+            await projectsApi.create(values)
+            setCreateModalOpen(false)
+            void reload()
+          } finally {
+            setCreating(false)
+          }
+        }}
+      >
+        <Form form={createForm} layout="vertical">
+          <Row gutter={12}>
+            <Col span={12}>
+              <Form.Item name="projectCode" label="プロジェクトコード" rules={[{ required: true }]}>
+                <Input />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item name="projectName" label="名称" rules={[{ required: true }]}>
+                <Input />
+              </Form.Item>
+            </Col>
+          </Row>
+          <Form.Item name="description" label="説明">
+            <Input.TextArea rows={2} />
+          </Form.Item>
+          <Row gutter={12}>
+            <Col span={12}>
+              <Form.Item name="status" label="ステータス" initialValue={ProjectStatus.Planning}>
+                <Select
+                  options={[
+                    { value: ProjectStatus.Planning, label: '計画中' },
+                    { value: ProjectStatus.Active, label: '進行中' },
+                    { value: ProjectStatus.OnHold, label: '保留' },
+                    { value: ProjectStatus.Completed, label: '完了' },
+                    { value: ProjectStatus.Cancelled, label: 'キャンセル' },
+                  ]}
+                />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item name="priority" label="優先度" initialValue={ProjectPriority.Medium}>
+                <Select
+                  options={[
+                    { value: ProjectPriority.Low, label: '低' },
+                    { value: ProjectPriority.Medium, label: '中' },
+                    { value: ProjectPriority.High, label: '高' },
+                    { value: ProjectPriority.Critical, label: '緊急' },
+                  ]}
+                />
+              </Form.Item>
+            </Col>
+          </Row>
+          <Row gutter={12}>
+            <Col span={12}>
+              <Form.Item name="oemCode" label="OEMコード">
+                <Input />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item name="oemName" label="OEM名">
+                <Input />
+              </Form.Item>
+            </Col>
+          </Row>
+          <Row gutter={12}>
+            <Col span={12}>
+              <Form.Item name="vehicleModel" label="車両モデル">
+                <Input />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item name="primarySystem" label="主要システム">
+                <Input />
+              </Form.Item>
+            </Col>
+          </Row>
+          <Row gutter={12}>
+            <Col span={12}>
+              <Form.Item name="startDate" label="開始日 (YYYY-MM-DD)">
+                <Input placeholder="2024-01-01" />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item name="plannedEndDate" label="予定終了日 (YYYY-MM-DD)">
+                <Input placeholder="2024-12-31" />
+              </Form.Item>
+            </Col>
+          </Row>
+        </Form>
+      </Modal>
     </Space>
   )
 }

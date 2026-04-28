@@ -1,4 +1,4 @@
-package com.anomalydetection.host.application;
+package com.anomalydetection.application.cansignals;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -6,7 +6,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.anomalydetection.application.cansignals.CanSignalAppService;
+import com.anomalydetection.contracts.cansignals.CanSignalDto;
 import com.anomalydetection.contracts.cansignals.CreateUpdateCanSignalDto;
 import com.anomalydetection.domain.cansignals.CanSignal;
 import com.anomalydetection.domain.cansignals.CanSignalRepository;
@@ -21,12 +21,19 @@ class CanSignalAppServiceTest {
 
   private final CanSignalRepository repository = mock(CanSignalRepository.class);
   private final ICurrentTenant currentTenant = mock(ICurrentTenant.class);
+  private final CanSignalMapper mapper = mock(CanSignalMapper.class);
   private CanSignalAppService service;
 
   @BeforeEach
   void setUp() {
-    service = new CanSignalAppService(repository, currentTenant);
+    service = new CanSignalAppService(repository, currentTenant, mapper);
     when(currentTenant.getTenantId()).thenReturn(Optional.empty());
+    when(mapper.toDto(any(CanSignal.class))).thenAnswer(inv -> {
+      CanSignal s = inv.getArgument(0);
+      return new CanSignalDto(s.getId(), s.getTenantId(), s.getFrameId(), s.getName(),
+          s.getDescription(), s.getStartBit(), s.getLength(), s.getByteOrder(),
+          s.isSigned(), s.getSpecificationId());
+    });
   }
 
   @Test

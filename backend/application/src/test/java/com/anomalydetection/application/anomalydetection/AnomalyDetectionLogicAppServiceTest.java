@@ -1,11 +1,11 @@
-package com.anomalydetection.host.application;
+package com.anomalydetection.application.anomalydetection;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.anomalydetection.application.anomalydetection.CanAnomalyDetectionLogicAppService;
+import com.anomalydetection.contracts.anomalydetection.CanAnomalyDetectionLogicDto;
 import com.anomalydetection.contracts.anomalydetection.CreateUpdateCanAnomalyDetectionLogicDto;
 import com.anomalydetection.domain.anomalydetection.AnomalyType;
 import com.anomalydetection.domain.anomalydetection.AsilLevel;
@@ -27,12 +27,24 @@ class AnomalyDetectionLogicAppServiceTest {
   private final CanAnomalyDetectionLogicRepository repository =
       mock(CanAnomalyDetectionLogicRepository.class);
   private final ICurrentTenant currentTenant = mock(ICurrentTenant.class);
+  private final CanAnomalyDetectionLogicMapper mapper = mock(CanAnomalyDetectionLogicMapper.class);
   private CanAnomalyDetectionLogicAppService service;
 
   @BeforeEach
   void setUp() {
-    service = new CanAnomalyDetectionLogicAppService(repository, currentTenant);
+    service = new CanAnomalyDetectionLogicAppService(repository, currentTenant, mapper);
     when(currentTenant.getTenantId()).thenReturn(Optional.empty());
+    when(mapper.toDto(any(CanAnomalyDetectionLogic.class))).thenAnswer(inv -> {
+      CanAnomalyDetectionLogic e = inv.getArgument(0);
+      return new CanAnomalyDetectionLogicDto(
+          e.getId(), e.getTenantId(), e.getName(), e.getVersion(), e.getOemCode(),
+          e.getAnomalyType(), e.getDescription(), e.getTargetSystemType(), e.getComplexity(),
+          e.getRequirements(), e.getImplementationType(), e.getImplementationLanguage(),
+          e.getAsilLevel(), e.getSafetyRequirementId(), e.getSafetyGoalId(),
+          e.getStatus(), e.getSharingLevel(), e.getVehiclePhaseId(),
+          e.getApprovedAt(), e.getApprovedBy(), e.getApprovalNotes(),
+          e.getExecutionCount(), e.getLastExecutedAt(), e.getLastExecutionTimeMs());
+    });
   }
 
   private CreateUpdateCanAnomalyDetectionLogicDto buildInput(String name) {

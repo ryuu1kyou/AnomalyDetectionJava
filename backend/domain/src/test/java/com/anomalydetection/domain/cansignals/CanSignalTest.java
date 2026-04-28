@@ -1,8 +1,7 @@
-package com.anomalydetection.host.domain;
+package com.anomalydetection.domain.cansignals;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.anomalydetection.domain.cansignals.CanSignal;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 

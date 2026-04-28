@@ -60,6 +60,16 @@ public class AuditLogEntity {
   }
 
   public UUID getId() { return id; }
+  public UUID getUserId() { return userId; }
+  public String getUserName() { return userName; }
+  public UUID getTenantId() { return tenantId; }
+  public String getHttpMethod() { return httpMethod; }
+  public String getUrl() { return url; }
+  public String getActionName() { return actionName; }
+  public Integer getHttpStatusCode() { return httpStatusCode; }
+  public Long getExecutionDuration() { return executionDuration; }
+  public Instant getOccurredAt() { return occurredAt; }
+  public String getExceptions() { return exceptions; }
   public void setHttpStatusCode(Integer code) { this.httpStatusCode = code; }
   public void setExecutionDuration(Long ms) { this.executionDuration = ms; }
   public void setExceptions(String ex) { this.exceptions = ex; }

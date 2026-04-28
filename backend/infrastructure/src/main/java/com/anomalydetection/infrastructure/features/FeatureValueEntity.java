@@ -41,4 +41,5 @@ public class FeatureValueEntity {
   public String getValue() { return value; }
   public String getProviderName() { return providerName; }
   public String getProviderKey() { return providerKey; }
+  public void setValue(String value) { this.value = value; }
 }

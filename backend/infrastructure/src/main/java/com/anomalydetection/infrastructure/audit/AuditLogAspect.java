@@ -3,6 +3,7 @@ package com.anomalydetection.infrastructure.audit;
 import com.anomalydetection.infrastructure.multitenancy.CurrentTenantHolder;
 import com.anomalydetection.shared.CurrentUserIdHolder;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.time.Instant;
 import java.util.UUID;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -38,6 +39,7 @@ public class AuditLogAspect {
     var start = Instant.now();
     var attrs = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
     HttpServletRequest req = attrs != null ? attrs.getRequest() : null;
+    HttpServletResponse res = attrs != null ? attrs.getResponse() : null;
 
     Authentication auth = SecurityContextHolder.getContext().getAuthentication();
     UUID userId = CurrentUserIdHolder.getUserId().orElse(null);
@@ -50,12 +52,11 @@ public class AuditLogAspect {
 
     AuditLogEntity entry = new AuditLogEntity(userId, userName, tenantId, method, url, actionName, start);
 
-    Throwable thrown = null;
     try {
       Object result = pjp.proceed();
+      if (res != null) entry.setHttpStatusCode(res.getStatus());
       return result;
     } catch (Throwable t) {
-      thrown = t;
       entry.setExceptions(t.getClass().getName() + ": " + t.getMessage());
       throw t;
     } finally {

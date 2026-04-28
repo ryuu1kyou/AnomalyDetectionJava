@@ -39,6 +39,16 @@ const MENU_ITEMS = [
       { key: '/integration', label: <Link to="/integration">エンドポイント</Link> },
     ],
   },
+  {
+    key: 'admin',
+    label: '管理',
+    children: [
+      { key: '/audit-log', label: <Link to="/audit-log">監査ログ</Link> },
+      { key: '/settings', label: <Link to="/settings">設定</Link> },
+      { key: '/features', label: <Link to="/features">フィーチャーフラグ</Link> },
+      { key: '/permissions', label: <Link to="/permissions">権限管理</Link> },
+    ],
+  },
 ]
 
 export default function RootLayout() {
@@ -69,7 +79,7 @@ export default function RootLayout() {
             mode="inline"
             theme="dark"
             selectedKeys={[location.pathname]}
-            defaultOpenKeys={['core', 'projects', 'quality', 'integration']}
+            defaultOpenKeys={['core', 'projects', 'quality', 'integration', 'admin']}
             items={MENU_ITEMS}
           />
         </Sider>

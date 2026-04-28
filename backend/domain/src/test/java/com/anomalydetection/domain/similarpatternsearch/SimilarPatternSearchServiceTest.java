@@ -1,10 +1,8 @@
-package com.anomalydetection.host.domain;
+package com.anomalydetection.domain.similarpatternsearch;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.anomalydetection.domain.cansignals.CanSignal;
-import com.anomalydetection.domain.similarpatternsearch.RecommendationLevel;
-import com.anomalydetection.domain.similarpatternsearch.SimilarPatternSearchService;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -14,8 +12,7 @@ class SimilarPatternSearchServiceTest {
   private final SimilarPatternSearchService service = new SimilarPatternSearchService();
 
   private CanSignal signal(String name, int frameId, int length) {
-    var s = new CanSignal(UUID.randomUUID(), frameId, name, 0, length);
-    return s;
+    return new CanSignal(UUID.randomUUID(), frameId, name, 0, length);
   }
 
   @Test

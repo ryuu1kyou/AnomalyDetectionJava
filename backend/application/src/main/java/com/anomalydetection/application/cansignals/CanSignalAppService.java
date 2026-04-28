@@ -19,22 +19,25 @@ public class CanSignalAppService {
 
   private final CanSignalRepository repository;
   private final ICurrentTenant currentTenant;
+  private final CanSignalMapper mapper;
 
-  public CanSignalAppService(CanSignalRepository repository, ICurrentTenant currentTenant) {
+  public CanSignalAppService(CanSignalRepository repository, ICurrentTenant currentTenant,
+      CanSignalMapper mapper) {
     this.repository = repository;
     this.currentTenant = currentTenant;
+    this.mapper = mapper;
   }
 
   @Transactional(readOnly = true)
   @PreAuthorize("hasAuthority('" + CanSignalPermissions.DEFAULT + "')")
   public List<CanSignalDto> getList() {
-    return repository.findAll().stream().map(this::toDto).toList();
+    return repository.findAll().stream().map(mapper::toDto).toList();
   }
 
   @Transactional(readOnly = true)
   @PreAuthorize("hasAuthority('" + CanSignalPermissions.DEFAULT + "')")
   public Optional<CanSignalDto> getById(UUID id) {
-    return repository.findById(id).map(this::toDto);
+    return repository.findById(id).map(mapper::toDto);
   }
 
   @PreAuthorize("hasAuthority('" + CanSignalPermissions.CREATE + "')")
@@ -45,7 +48,7 @@ public class CanSignalAppService {
     entity.setByteOrder(input.byteOrder());
     entity.setSigned(input.isSigned());
     entity.setSpecificationId(input.specificationId());
-    return toDto(repository.save(entity));
+    return mapper.toDto(repository.save(entity));
   }
 
   @PreAuthorize("hasAuthority('" + CanSignalPermissions.EDIT + "')")
@@ -59,7 +62,7 @@ public class CanSignalAppService {
       entity.setByteOrder(input.byteOrder());
       entity.setSigned(input.isSigned());
       entity.setSpecificationId(input.specificationId());
-      return toDto(repository.save(entity));
+      return mapper.toDto(repository.save(entity));
     });
   }
 
@@ -70,9 +73,4 @@ public class CanSignalAppService {
     return true;
   }
 
-  private CanSignalDto toDto(CanSignal s) {
-    return new CanSignalDto(s.getId(), s.getTenantId(), s.getFrameId(), s.getName(),
-        s.getDescription(), s.getStartBit(), s.getLength(), s.getByteOrder(),
-        s.isSigned(), s.getSpecificationId());
-  }
 }

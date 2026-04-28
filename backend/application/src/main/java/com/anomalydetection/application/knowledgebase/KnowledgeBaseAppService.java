@@ -169,20 +169,12 @@ public class KnowledgeBaseAppService {
               && a.getCanSignalId().toString().equals(canSignalId)) score += 40;
           if (anomalyType != null && anomalyType.equalsIgnoreCase(a.getAnomalyType())) score += 30;
           score += (int) (a.getAverageRating() * 2);
-          return new int[]{score, System.identityHashCode(a)};
+          return java.util.Map.entry(score, a);
         })
-        .filter(pair -> pair[0] > 0)
-        .sorted((p1, p2) -> Integer.compare(p2[0], p1[0]))
+        .filter(e -> e.getKey() > 0)
+        .sorted((e1, e2) -> Integer.compare(e2.getKey(), e1.getKey()))
         .limit(limit > 0 ? limit : 10)
-        .map(pair -> {
-          // Re-fetch would be needed in production; for MVP, stream again
-          return articleRepo.findAll().stream()
-              .filter(KnowledgeArticle::isPublished)
-              .findFirst()
-              .map(this::toDto)
-              .orElse(null);
-        })
-        .filter(dto -> dto != null)
+        .map(e -> toDto(e.getValue()))
         .toList();
   }
 

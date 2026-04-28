@@ -89,7 +89,13 @@
       "Bash(curl -s -o /dev/null -w '%{http_code}' -H 'Origin: http://localhost:5173' -H 'Access-Control-Request-Method: GET' -X OPTIONS http://localhost:44397/.well-known/openid-configuration)",
       "Bash(curl -s -o /dev/null -w '%{http_code}' -H 'Origin: http://localhost:5173' -H 'Access-Control-Request-Method: GET' -X OPTIONS http://localhost:44397/api/app/can-signals)",
       "Bash(curl -s -D - -H 'Origin: http://localhost:5173' http://localhost:44397/.well-known/openid-configuration)",
-      "Bash(curl -sv -H 'Origin: http://localhost:5173' -H 'Access-Control-Request-Method: GET' -X OPTIONS http://localhost:44397/.well-known/openid-configuration)"
+      "Bash(curl -sv -H 'Origin: http://localhost:5173' -H 'Access-Control-Request-Method: GET' -X OPTIONS http://localhost:44397/.well-known/openid-configuration)",
+      "Bash(xargs grep *)",
+      "Bash(npm test *)",
+      "Bash(grep -v \"//\")",
+      "Bash(xargs head *)",
+      "Bash(xargs -I{} sh -c 'echo \"=== {} ===\"; cat {}')",
+      "Bash(xargs -I {} ls -la {}/)"
     ]
   }
 }

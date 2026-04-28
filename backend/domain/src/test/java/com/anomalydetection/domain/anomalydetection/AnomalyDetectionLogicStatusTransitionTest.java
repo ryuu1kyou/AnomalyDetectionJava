@@ -1,10 +1,8 @@
-package com.anomalydetection.host.domain;
+package com.anomalydetection.domain.anomalydetection;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.anomalydetection.domain.anomalydetection.CanAnomalyDetectionLogic;
-import com.anomalydetection.domain.anomalydetection.DetectionLogicStatus;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 

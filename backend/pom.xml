@@ -33,6 +33,16 @@
     <mapstruct.version>1.6.2</mapstruct.version>
     <shedlock.version>5.16.0</shedlock.version>
     <springdoc.version>2.6.0</springdoc.version>
+
+    <!-- Quality tool versions -->
+    <jacoco.version>0.8.12</jacoco.version>
+    <spotless.version>2.43.0</spotless.version>
+    <spotbugs.version>4.8.6.4</spotbugs.version>
+    <google-java-format.version>1.22.0</google-java-format.version>
+
+    <!-- Jacoco coverage thresholds -->
+    <jacoco.domain.min>0.70</jacoco.domain.min>
+    <jacoco.overall.min>0.50</jacoco.overall.min>
   </properties>
 
   <modules>
@@ -150,7 +160,69 @@
             </annotationProcessorPaths>
           </configuration>
         </plugin>
+
+        <!-- Spotless: Google Java Format 強制 -->
+        <plugin>
+          <groupId>com.diffplug.spotless</groupId>
+          <artifactId>spotless-maven-plugin</artifactId>
+          <version>${spotless.version}</version>
+          <configuration>
+            <java>
+              <googleJavaFormat>
+                <version>${google-java-format.version}</version>
+                <style>GOOGLE</style>
+              </googleJavaFormat>
+              <trimTrailingWhitespace/>
+              <endWithNewline/>
+            </java>
+          </configuration>
+        </plugin>
+
+        <!-- SpotBugs: バグ・セキュリティ検出 -->
+        <plugin>
+          <groupId>com.github.spotbugs</groupId>
+          <artifactId>spotbugs-maven-plugin</artifactId>
+          <version>${spotbugs.version}</version>
+          <configuration>
+            <effort>Max</effort>
+            <threshold>Medium</threshold>
+            <failOnError>false</failOnError>
+          </configuration>
+        </plugin>
+
+        <!-- Jacoco: カバレッジ集計 -->
+        <plugin>
+          <groupId>org.jacoco</groupId>
+          <artifactId>jacoco-maven-plugin</artifactId>
+          <version>${jacoco.version}</version>
+          <executions>
+            <execution>
+              <id>prepare-agent</id>
+              <goals><goal>prepare-agent</goal></goals>
+            </execution>
+            <execution>
+              <id>report</id>
+              <phase>verify</phase>
+              <goals><goal>report</goal></goals>
+            </execution>
+          </executions>
+        </plugin>
       </plugins>
     </pluginManagement>
+
+    <!-- host 以外の全モジュールで Jacoco エージェントを有効化 -->
+    <plugins>
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <version>${jacoco.version}</version>
+        <executions>
+          <execution>
+            <id>prepare-agent</id>
+            <goals><goal>prepare-agent</goal></goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
   </build>
 </project>

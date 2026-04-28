@@ -11,5 +11,9 @@ public interface PermissionGrantRepository {
   boolean existsByNameAndProviderNameAndProviderKey(
       String name, String providerName, String providerKey);
 
+  List<PermissionGrant> findAll();
+
   List<PermissionGrant> findByProviderNameIn(List<String> providerNames);
+
+  void deleteByNameAndProviderNameAndProviderKey(String name, String providerName, String providerKey);
 }

@@ -14,6 +14,10 @@ import CanSignalSpecPage from '../../modules/cansspecification/CanSignalSpecPage
 import SafetyPage from '../../modules/safety/SafetyPage'
 import KnowledgeBasePage from '../../modules/knowledgebase/KnowledgeBasePage'
 import OemTraceabilityPage from '../../modules/oemtraceability/OemTraceabilityPage'
+import AuditLogPage from '../../modules/auditlog/AuditLogPage'
+import SettingsPage from '../../modules/settings/SettingsPage'
+import FeaturesPage from '../../modules/features/FeaturesPage'
+import PermissionsPage from '../../modules/permissions/PermissionsPage'
 
 export const router = createBrowserRouter([
   {
@@ -40,6 +44,11 @@ export const router = createBrowserRouter([
       { path: 'oem-traceability', element: <OemTraceabilityPage /> },
       // Integration
       { path: 'integration', element: <IntegrationListPage /> },
+      // Administration (M3)
+      { path: 'audit-log', element: <AuditLogPage /> },
+      { path: 'settings', element: <SettingsPage /> },
+      { path: 'features', element: <FeaturesPage /> },
+      { path: 'permissions', element: <PermissionsPage /> },
     ],
   },
 ])

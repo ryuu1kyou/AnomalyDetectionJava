@@ -22,41 +22,44 @@ public class CanAnomalyDetectionLogicAppService {
 
   private final CanAnomalyDetectionLogicRepository repository;
   private final ICurrentTenant currentTenant;
+  private final CanAnomalyDetectionLogicMapper mapper;
 
   public CanAnomalyDetectionLogicAppService(
-      CanAnomalyDetectionLogicRepository repository, ICurrentTenant currentTenant) {
+      CanAnomalyDetectionLogicRepository repository, ICurrentTenant currentTenant,
+      CanAnomalyDetectionLogicMapper mapper) {
     this.repository = repository;
     this.currentTenant = currentTenant;
+    this.mapper = mapper;
   }
 
   @Transactional(readOnly = true)
   @PreAuthorize("hasAuthority('" + AnomalyDetectionPermissions.LOGIC_DEFAULT + "')")
   public List<CanAnomalyDetectionLogicDto> getList() {
-    return repository.findAll().stream().map(this::toDto).toList();
+    return repository.findAll().stream().map(mapper::toDto).toList();
   }
 
   @Transactional(readOnly = true)
   @PreAuthorize("hasAuthority('" + AnomalyDetectionPermissions.LOGIC_DEFAULT + "')")
   public Optional<CanAnomalyDetectionLogicDto> getById(UUID id) {
-    return repository.findById(id).map(this::toDto);
+    return repository.findById(id).map(mapper::toDto);
   }
 
   @Transactional(readOnly = true)
   @PreAuthorize("hasAuthority('" + AnomalyDetectionPermissions.LOGIC_DEFAULT + "')")
   public List<CanAnomalyDetectionLogicDto> getByStatus(DetectionLogicStatus status) {
-    return repository.findAllByStatus(status).stream().map(this::toDto).toList();
+    return repository.findAllByStatus(status).stream().map(mapper::toDto).toList();
   }
 
   @Transactional(readOnly = true)
   @PreAuthorize("hasAuthority('" + AnomalyDetectionPermissions.LOGIC_DEFAULT + "')")
   public List<CanAnomalyDetectionLogicDto> getByAnomalyType(AnomalyType type) {
-    return repository.findAllByAnomalyType(type).stream().map(this::toDto).toList();
+    return repository.findAllByAnomalyType(type).stream().map(mapper::toDto).toList();
   }
 
   @Transactional(readOnly = true)
   @PreAuthorize("hasAuthority('" + AnomalyDetectionPermissions.LOGIC_DEFAULT + "')")
   public List<CanAnomalyDetectionLogicDto> getBySharingLevel(SharingLevel level) {
-    return repository.findAllBySharingLevel(level).stream().map(this::toDto).toList();
+    return repository.findAllBySharingLevel(level).stream().map(mapper::toDto).toList();
   }
 
   @PreAuthorize("hasAuthority('" + AnomalyDetectionPermissions.LOGIC_CREATE + "')")
@@ -67,7 +70,7 @@ public class CanAnomalyDetectionLogicAppService {
         input.version() != null ? input.version() : "1.0.0");
     applyInput(entity, input);
     currentTenant.getTenantId().ifPresent(entity::setTenantId);
-    return toDto(repository.save(entity));
+    return mapper.toDto(repository.save(entity));
   }
 
   @PreAuthorize("hasAuthority('" + AnomalyDetectionPermissions.LOGIC_EDIT + "')")
@@ -76,7 +79,7 @@ public class CanAnomalyDetectionLogicAppService {
     return repository.findById(id)
         .map(entity -> {
           applyInput(entity, input);
-          return toDto(repository.save(entity));
+          return mapper.toDto(repository.save(entity));
         });
   }
 
@@ -92,7 +95,7 @@ public class CanAnomalyDetectionLogicAppService {
     return repository.findById(id)
         .map(entity -> {
           entity.submitForApproval();
-          return toDto(repository.save(entity));
+          return mapper.toDto(repository.save(entity));
         });
   }
 
@@ -101,7 +104,7 @@ public class CanAnomalyDetectionLogicAppService {
     return repository.findById(id)
         .map(entity -> {
           entity.approve(approvedBy, notes);
-          return toDto(repository.save(entity));
+          return mapper.toDto(repository.save(entity));
         });
   }
 
@@ -110,7 +113,7 @@ public class CanAnomalyDetectionLogicAppService {
     return repository.findById(id)
         .map(entity -> {
           entity.reject(reason);
-          return toDto(repository.save(entity));
+          return mapper.toDto(repository.save(entity));
         });
   }
 
@@ -119,7 +122,7 @@ public class CanAnomalyDetectionLogicAppService {
     return repository.findById(id)
         .map(entity -> {
           entity.deprecate(reason);
-          return toDto(repository.save(entity));
+          return mapper.toDto(repository.save(entity));
         });
   }
 
@@ -144,31 +147,4 @@ public class CanAnomalyDetectionLogicAppService {
     entity.setVehiclePhaseId(i.vehiclePhaseId());
   }
 
-  private CanAnomalyDetectionLogicDto toDto(CanAnomalyDetectionLogic e) {
-    return new CanAnomalyDetectionLogicDto(
-        e.getId(),
-        e.getTenantId(),
-        e.getName(),
-        e.getVersion(),
-        e.getOemCode(),
-        e.getAnomalyType(),
-        e.getDescription(),
-        e.getTargetSystemType(),
-        e.getComplexity(),
-        e.getRequirements(),
-        e.getImplementationType(),
-        e.getImplementationLanguage(),
-        e.getAsilLevel(),
-        e.getSafetyRequirementId(),
-        e.getSafetyGoalId(),
-        e.getStatus(),
-        e.getSharingLevel(),
-        e.getVehiclePhaseId(),
-        e.getApprovedAt(),
-        e.getApprovedBy(),
-        e.getApprovalNotes(),
-        e.getExecutionCount(),
-        e.getLastExecutedAt(),
-        e.getLastExecutionTimeMs());
-  }
 }

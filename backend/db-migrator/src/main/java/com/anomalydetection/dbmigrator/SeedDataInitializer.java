@@ -1,11 +1,26 @@
 package com.anomalydetection.dbmigrator;
 
+import com.anomalydetection.application.permissions.PermissionManager;
+import com.anomalydetection.contracts.anomalydetection.AnomalyDetectionPermissions;
+import com.anomalydetection.contracts.cansignals.CanSignalPermissions;
+import com.anomalydetection.contracts.cansspecification.CanSpecificationPermissions;
+import com.anomalydetection.contracts.detectiontemplates.DetectionTemplatePermissions;
+import com.anomalydetection.contracts.identity.IdentityPermissions;
+import com.anomalydetection.contracts.integration.IntegrationPermissions;
+import com.anomalydetection.contracts.knowledgebase.KnowledgeBasePermissions;
+import com.anomalydetection.contracts.oemtraceability.OemTraceabilityPermissions;
+import com.anomalydetection.contracts.projects.ProjectPermissions;
+import com.anomalydetection.contracts.safety.SafetyTracePermissions;
+import com.anomalydetection.contracts.similarpatternsearch.SimilarPatternSearchPermissions;
+import com.anomalydetection.domain.cansspecification.CanSystemCategory;
+import com.anomalydetection.domain.cansspecification.CanSystemCategoryRepository;
+import com.anomalydetection.domain.detectiontemplates.DetectionTemplate;
+import com.anomalydetection.domain.detectiontemplates.DetectionTemplateRepository;
 import com.anomalydetection.domain.identity.Role;
 import com.anomalydetection.domain.identity.RoleRepository;
 import com.anomalydetection.domain.identity.User;
 import com.anomalydetection.domain.identity.UserRepository;
 import com.anomalydetection.domain.multitenancy.Tenant;
-import com.anomalydetection.application.permissions.PermissionManager;
 import com.anomalydetection.domain.multitenancy.TenantRepository;
 import java.time.Duration;
 import java.util.List;
@@ -42,6 +57,8 @@ public class SeedDataInitializer implements ApplicationRunner {
   private final PasswordEncoder passwordEncoder;
   private final JdbcTemplate jdbcTemplate;
   private final PermissionManager permissionManager;
+  private final CanSystemCategoryRepository canSystemCategoryRepository;
+  private final DetectionTemplateRepository detectionTemplateRepository;
 
   public SeedDataInitializer(
       TenantRepository tenantRepository,
@@ -49,13 +66,17 @@ public class SeedDataInitializer implements ApplicationRunner {
       RoleRepository roleRepository,
       PasswordEncoder passwordEncoder,
       JdbcTemplate jdbcTemplate,
-      PermissionManager permissionManager) {
+      PermissionManager permissionManager,
+      CanSystemCategoryRepository canSystemCategoryRepository,
+      DetectionTemplateRepository detectionTemplateRepository) {
     this.tenantRepository = tenantRepository;
     this.userRepository = userRepository;
     this.roleRepository = roleRepository;
     this.passwordEncoder = passwordEncoder;
     this.jdbcTemplate = jdbcTemplate;
     this.permissionManager = permissionManager;
+    this.canSystemCategoryRepository = canSystemCategoryRepository;
+    this.detectionTemplateRepository = detectionTemplateRepository;
   }
 
   @Override
@@ -66,6 +87,8 @@ public class SeedDataInitializer implements ApplicationRunner {
     seedAdminUser();
     seedOAuth2SpaClient();
     seedAdminRolePermissions();
+    seedCanSystemCategories();
+    seedDefaultDetectionTemplates();
   }
 
   private void seedDefaultTenant() {
@@ -142,22 +165,150 @@ public class SeedDataInitializer implements ApplicationRunner {
 
   private void seedAdminRolePermissions() {
     var allPermissions = List.of(
-        com.anomalydetection.contracts.identity.IdentityPermissions.USERS_VIEW,
-        com.anomalydetection.contracts.identity.IdentityPermissions.USERS_CREATE,
-        com.anomalydetection.contracts.identity.IdentityPermissions.USERS_EDIT,
-        com.anomalydetection.contracts.identity.IdentityPermissions.USERS_DELETE,
-        com.anomalydetection.contracts.identity.IdentityPermissions.ROLES_VIEW,
-        com.anomalydetection.contracts.identity.IdentityPermissions.ROLES_CREATE,
-        com.anomalydetection.contracts.identity.IdentityPermissions.ROLES_EDIT,
-        com.anomalydetection.contracts.identity.IdentityPermissions.ROLES_DELETE,
-        com.anomalydetection.contracts.identity.IdentityPermissions.TENANTS_VIEW,
-        com.anomalydetection.contracts.identity.IdentityPermissions.TENANTS_CREATE,
-        com.anomalydetection.contracts.identity.IdentityPermissions.TENANTS_EDIT,
-        com.anomalydetection.contracts.identity.IdentityPermissions.TENANTS_DELETE
+        // Identity
+        IdentityPermissions.USERS_VIEW,
+        IdentityPermissions.USERS_CREATE,
+        IdentityPermissions.USERS_EDIT,
+        IdentityPermissions.USERS_DELETE,
+        IdentityPermissions.ROLES_VIEW,
+        IdentityPermissions.ROLES_CREATE,
+        IdentityPermissions.ROLES_EDIT,
+        IdentityPermissions.ROLES_DELETE,
+        IdentityPermissions.TENANTS_VIEW,
+        IdentityPermissions.TENANTS_CREATE,
+        IdentityPermissions.TENANTS_EDIT,
+        IdentityPermissions.TENANTS_DELETE,
+        // CanSignal
+        CanSignalPermissions.DEFAULT,
+        CanSignalPermissions.CREATE,
+        CanSignalPermissions.EDIT,
+        CanSignalPermissions.DELETE,
+        // CanSpecification
+        CanSpecificationPermissions.DEFAULT,
+        CanSpecificationPermissions.CREATE,
+        CanSpecificationPermissions.EDIT,
+        CanSpecificationPermissions.DELETE,
+        // DetectionTemplates
+        DetectionTemplatePermissions.DEFAULT,
+        DetectionTemplatePermissions.CREATE,
+        DetectionTemplatePermissions.EDIT,
+        DetectionTemplatePermissions.DELETE,
+        // AnomalyDetection (Logic + Result)
+        AnomalyDetectionPermissions.LOGIC_DEFAULT,
+        AnomalyDetectionPermissions.LOGIC_CREATE,
+        AnomalyDetectionPermissions.LOGIC_EDIT,
+        AnomalyDetectionPermissions.LOGIC_DELETE,
+        AnomalyDetectionPermissions.LOGIC_APPROVE,
+        AnomalyDetectionPermissions.RESULT_DEFAULT,
+        AnomalyDetectionPermissions.RESULT_CREATE,
+        AnomalyDetectionPermissions.RESULT_EDIT,
+        AnomalyDetectionPermissions.RESULT_DELETE,
+        // Projects
+        ProjectPermissions.DEFAULT,
+        ProjectPermissions.CREATE,
+        ProjectPermissions.EDIT,
+        ProjectPermissions.DELETE,
+        ProjectPermissions.MANAGE_MEMBERS,
+        ProjectPermissions.MANAGE_MILESTONES,
+        // Safety
+        SafetyTracePermissions.DEFAULT,
+        SafetyTracePermissions.CREATE,
+        SafetyTracePermissions.EDIT,
+        SafetyTracePermissions.DELETE,
+        SafetyTracePermissions.APPROVE,
+        SafetyTracePermissions.AUDIT_EXPORT,
+        // KnowledgeBase
+        KnowledgeBasePermissions.DEFAULT,
+        KnowledgeBasePermissions.CREATE,
+        KnowledgeBasePermissions.EDIT,
+        KnowledgeBasePermissions.DELETE,
+        KnowledgeBasePermissions.PUBLISH,
+        // OemTraceability
+        OemTraceabilityPermissions.APPROVAL_DEFAULT,
+        OemTraceabilityPermissions.APPROVAL_CREATE,
+        OemTraceabilityPermissions.APPROVAL_MANAGE,
+        OemTraceabilityPermissions.CUSTOMIZATION_DEFAULT,
+        OemTraceabilityPermissions.CUSTOMIZATION_CREATE,
+        OemTraceabilityPermissions.CUSTOMIZATION_MANAGE,
+        // SimilarPatternSearch
+        SimilarPatternSearchPermissions.DEFAULT,
+        SimilarPatternSearchPermissions.SEARCH_SIGNALS,
+        SimilarPatternSearchPermissions.COMPARE_TEST_DATA,
+        // Integration
+        IntegrationPermissions.DEFAULT,
+        IntegrationPermissions.CREATE,
+        IntegrationPermissions.MANAGE,
+        IntegrationPermissions.IMPORT_DATA
     );
     for (String perm : allPermissions) {
       permissionManager.grantToRole(perm, ADMIN_ROLE_NAME, null);
     }
     log.info("Seeded {} permissions for admin role", allPermissions.size());
+  }
+
+  private void seedCanSystemCategories() {
+    if (canSystemCategoryRepository.count() > 0) {
+      log.info("CanSystemCategory master data already exists - skipping");
+      return;
+    }
+    var categories = List.of(
+        createCategory("Engine Control", "Engine control unit signals", 1),
+        createCategory("Transmission", "Transmission control signals", 2),
+        createCategory("Brake System", "ABS/ESC brake system signals", 3),
+        createCategory("Body Control", "Body control module signals", 4),
+        createCategory("ADAS", "Advanced driver-assistance system signals", 5),
+        createCategory("Powertrain", "Powertrain management signals", 6),
+        createCategory("Chassis", "Chassis and suspension signals", 7),
+        createCategory("Infotainment", "Infotainment and HMI signals", 8)
+    );
+    canSystemCategoryRepository.saveAll(categories);
+    log.info("Seeded {} CanSystemCategory master records", categories.size());
+  }
+
+  private CanSystemCategory createCategory(String name, String description, int order) {
+    var cat = new CanSystemCategory(UUID.randomUUID(), name);
+    cat.setDescription(description);
+    cat.setDisplayOrder(order);
+    return cat;
+  }
+
+  private void seedDefaultDetectionTemplates() {
+    if (detectionTemplateRepository.count() > 0) {
+      log.info("DetectionTemplate seed data already exists - skipping");
+      return;
+    }
+    var templates = List.of(
+        createTemplate(
+            "Threshold Exceeded",
+            "Triggers when a signal value exceeds a configured threshold",
+            "value > threshold",
+            100.0),
+        createTemplate(
+            "Out of Range",
+            "Triggers when a signal value falls outside the expected range",
+            "value < min || value > max",
+            null),
+        createTemplate(
+            "Rapid Change",
+            "Triggers when a signal changes faster than the allowed rate",
+            "abs(delta) > rateLimit",
+            null),
+        createTemplate(
+            "Signal Lost",
+            "Triggers when no signal update is received within the timeout period",
+            "elapsed > timeout",
+            null)
+    );
+    detectionTemplateRepository.saveAll(templates);
+    log.info("Seeded {} default DetectionTemplate records", templates.size());
+  }
+
+  private DetectionTemplate createTemplate(String name, String description, String expression,
+      Double threshold) {
+    var t = new DetectionTemplate(UUID.randomUUID(), name);
+    t.setDescription(description);
+    t.setExpression(expression);
+    t.setThreshold(threshold);
+    return t;
   }
 }

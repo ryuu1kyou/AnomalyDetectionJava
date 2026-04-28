@@ -86,10 +86,10 @@ public class IntegrationAppService {
     return true;
   }
 
+  @PreAuthorize("hasAuthority('" + IntegrationPermissions.DEFAULT + "')")
   public boolean testConnection(UUID id) {
     var endpoint = endpointRepo.findById(id).orElse(null);
     if (endpoint == null) return false;
-    // Minimal test: assume reachable for non-REST types; for REST would need HTTP client
     return endpoint.isActive();
   }
 

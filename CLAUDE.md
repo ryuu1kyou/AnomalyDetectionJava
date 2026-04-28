@@ -155,7 +155,7 @@ application ──→ infrastructure ──→ host
 
 ## 5. 開発ステータス
 
-最終更新: 2026-04-28
+最終更新: 2026-04-29
 
 ### 5.1 マイルストーン進捗
 
@@ -167,24 +167,19 @@ application ──→ infrastructure ──→ host
 | **M0** (基盤セットアップ) | **完了** (tag: `m0-baseline`) |
 | **M1** (Identity + Multi-Tenancy) | **完了** (tag: `m1-identity-multitenancy`) |
 | **M2** (Spring Authorization Server) | **完了** (tag: `m2-spring-authorization-server`) |
-| **M3** (横断機能: Permissions / Settings / Features / Audit / Jobs / BLOB / i18n) | **未着手** |
+| **M3** (横断機能: Permissions / Settings / Features / Audit / Jobs / BLOB / i18n) | **完了** (全横断機能バックエンド実装済。REST API: AuditLog/Settings/Features/Permissions/BlobStoring。フロントエンド管理ページ: 監査ログ/設定/フィーチャーフラグ/権限管理。85テスト全 PASS) |
 | **M4** (コアドメイン移植) | **完了** (全10モジュール: CanSignal, CanSignalSpecification, DetectionTemplates, AnomalyDetection, Projects, Safety, KnowledgeBase, OemTraceability, SimilarPatternSearch, Integration) |
 | **M5** (フロントエンド基盤) | **完了** (Zustand 5 / TanStack Query 5 / react-oidc-context 3 / Zod 3 / React Hook Form 7 / openapi-fetch 追加済。AuthProvider・QueryProvider・stores・api/client・shared/schemas・/callback ルート実装済) |
-| **M6** (フロントエンド機能ページ) | **完了** (CAN信号・検出テンプレート・異常検出ロジック CRUD、インテグレーションエンドポイント一覧、CanSignalSpec/Safety/KnowledgeBase/OemTraceability スタブ実装。TanStack Query + apiFetch パターン統一) |
-| **M7** (システム/性能テスト) | **完了** (68テスト全 PASS。ドメイン単体: CanSignalTest・AnomalyDetectionLogicStatusTransitionTest・SimilarPatternSearchServiceTest / アプリサービス単体: CanSignalAppServiceTest・AnomalyDetectionLogicAppServiceTest / API 統合: CanSignalApiTest・DetectionTemplateApiTest・AnomalyDetectionLogicApiTest・SoftDeleteApiTest) |
+| **M6** (フロントエンド機能ページ) | **完了** (CAN信号・検出テンプレート・異常検出ロジック CRUD、インテグレーションエンドポイント一覧、Safety/KnowledgeBase/OemTraceability/CanSignalSpec 完全 CRUD 実装済。TanStack Query + apiFetch パターン統一) |
+| **M7** (システム/性能テスト) | **完了** (91テスト全 PASS。ドメイン単体[19]: CanSignalTest・AnomalyDetectionLogicStatusTransitionTest・SimilarPatternSearchServiceTest / アプリサービス単体[12]: CanSignalAppServiceTest・AnomalyDetectionLogicAppServiceTest / API 統合[60]: CanSignalApiTest・DetectionTemplateApiTest・AnomalyDetectionLogicApiTest・SoftDeleteApiTest・ProjectsApiTest(6) 他。MapStruct @Mapper 導入・テストモジュール分散配置・Vitest+RTL+MSW フロントエンドテスト基盤・AuditLog HTTP ステータス捕捉・全ドメイン権限シード・i18n メッセージ拡充) |
 
 ### 5.2 設計上の留意事項 (技術的負債候補)
 
-以下は M0 完了後に Plan 順序を逸脱して前倒しした作業に伴う**暫定実装**であり、後続フェーズで本実装に置き換える必要があります。
-
-- `ProjectsAppService` の in-memory `List<ProjectDto>` 保持 → M1 完了後に **Domain Aggregate + JPA Repository** に置換 (現状 `domain/projects/` パッケージ自体が存在しない)
-- `@PreAuthorize` / `PermissionDefinitionContributor` の後付け → M3a (permissions) 完了後
-- `ProjectsAppService` の in-memory mock → M6 本実装時に TanStack Query + openapi-fetch 生成型へ置換
-- `projectsApi.ts` の手書き型 → バックエンド起動後に `npm run api:generate` で `src/api/schema.d.ts` 生成型へ置換
+- `projectsApi.ts` の手書き型 → バックエンド起動後に `npm run api:generate` で `src/api/schema.d.ts` 生成型へ置換 (現状は fetch + 手書き型で動作中)
 
 ### 5.3 進行順序の逸脱メモ
 
-Plan の正規順序は M0 → M1 → M2 → M3 → M4 → M5 → M6 → M7 ですが、現状は M0 完了後に **M5(部分) → M4(Projects mock) → M6(Projects 画面)** の順で前倒しが行われています。M1〜M3 (認証・マルチテナント・横断機能) を抜かしているため、Projects 関連の実装は本実装段階で広範な手直しが発生します。M1 (Identity + Multi-Tenancy)・M2 (Spring Authorization Server) は完了。次は **M3 (横断機能)** に進む。
+Projects ドメインは本実装済み (JPA Repository + Domain Aggregate + REST API + フロントエンド Create/Update/Delete + ProjectsApiTest 6テスト)。暫定 mock は完全に置き換え完了。
 
 ### 5.4 将来課題 (今回スコープ外、後続で対応)
 

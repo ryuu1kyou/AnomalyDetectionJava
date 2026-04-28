@@ -1,4 +1,5 @@
 import type {
+  CreateProjectDto,
   CreateProjectMemberDto,
   CreateProjectMilestoneDto,
   GetProjectsInput,
@@ -6,6 +7,7 @@ import type {
   Project,
   ProjectMember,
   ProjectMilestone,
+  UpdateProjectDto,
   UpdateProjectMemberDto,
   UpdateProjectMilestoneDto,
 } from '../models/project'
@@ -98,6 +100,37 @@ export const projectsApi = {
       // ignore and fallback
     }
     return mockProjects.find(p => p.id === projectId)
+  },
+
+  async create(input: CreateProjectDto): Promise<Project> {
+    const res = await fetch(`${BACKEND_BASE_URL}${API_BASE_PATH}`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(input),
+    })
+    if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`)
+    return (await res.json()) as Project
+  },
+
+  async update(projectId: string, input: UpdateProjectDto): Promise<Project> {
+    const res = await fetch(
+      `${BACKEND_BASE_URL}${API_BASE_PATH}/${encodeURIComponent(projectId)}`,
+      {
+        method: 'PUT',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(input),
+      }
+    )
+    if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`)
+    return (await res.json()) as Project
+  },
+
+  async deleteProject(projectId: string): Promise<void> {
+    const res = await fetch(
+      `${BACKEND_BASE_URL}${API_BASE_PATH}/${encodeURIComponent(projectId)}`,
+      { method: 'DELETE' }
+    )
+    if (!res.ok && res.status !== 204) throw new Error(`HTTP ${res.status} ${res.statusText}`)
   },
 
   // Backward compatible alias (older UI used `list`)
