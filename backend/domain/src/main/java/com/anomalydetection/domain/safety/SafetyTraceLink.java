@@ -7,11 +7,13 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.util.UUID;
 import org.hibernate.annotations.Filter;
+import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
 @Entity
 @Table(name = "safety_trace_links")
 @Filter(name = "tenantFilter", condition = "tenant_id = UNHEX(REPLACE(:tenantId, '-', ''))")
+@SQLDelete(sql = "UPDATE safety_trace_links SET is_deleted = true, deleted_at = CURRENT_TIMESTAMP(6) WHERE id = ?")
 @SQLRestriction("is_deleted = false")
 public class SafetyTraceLink extends FullAuditedEntity<UUID> {
 

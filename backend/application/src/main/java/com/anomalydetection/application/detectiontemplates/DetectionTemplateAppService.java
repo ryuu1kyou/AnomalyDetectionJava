@@ -9,6 +9,7 @@ import com.anomalydetection.domain.multitenancy.ICurrentTenant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,15 +26,18 @@ public class DetectionTemplateAppService {
   }
 
   @Transactional(readOnly = true)
+  @PreAuthorize("hasAuthority('" + DetectionTemplatePermissions.DEFAULT + "')")
   public List<DetectionTemplateDto> getList() {
     return repository.findAll().stream().map(this::toDto).toList();
   }
 
   @Transactional(readOnly = true)
+  @PreAuthorize("hasAuthority('" + DetectionTemplatePermissions.DEFAULT + "')")
   public Optional<DetectionTemplateDto> getById(UUID id) {
     return repository.findById(id).map(this::toDto);
   }
 
+  @PreAuthorize("hasAuthority('" + DetectionTemplatePermissions.CREATE + "')")
   public DetectionTemplateDto create(CreateUpdateDetectionTemplateDto input) {
     var entity = new DetectionTemplate(UUID.randomUUID(), input.name());
     currentTenant.getTenantId().ifPresent(entity::setTenantId);
@@ -45,6 +49,7 @@ public class DetectionTemplateAppService {
     return toDto(repository.save(entity));
   }
 
+  @PreAuthorize("hasAuthority('" + DetectionTemplatePermissions.EDIT + "')")
   public Optional<DetectionTemplateDto> update(UUID id, CreateUpdateDetectionTemplateDto input) {
     return repository.findById(id)
         .map(
@@ -59,6 +64,7 @@ public class DetectionTemplateAppService {
             });
   }
 
+  @PreAuthorize("hasAuthority('" + DetectionTemplatePermissions.DELETE + "')")
   public boolean delete(UUID id) {
     if (!repository.existsById(id)) return false;
     repository.deleteById(id);

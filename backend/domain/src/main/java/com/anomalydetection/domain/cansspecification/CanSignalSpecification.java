@@ -9,11 +9,13 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.util.UUID;
 import org.hibernate.annotations.Filter;
+import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
 @Entity
 @Table(name = "can_signal_specifications")
 @Filter(name = "tenantFilter", condition = "tenant_id = UNHEX(REPLACE(:tenantId, '-', ''))")
+@SQLDelete(sql = "UPDATE can_signal_specifications SET is_deleted = true, deleted_at = CURRENT_TIMESTAMP(6) WHERE id = ?")
 @SQLRestriction("is_deleted = false")
 public class CanSignalSpecification extends FullAuditedEntity<UUID> {
 

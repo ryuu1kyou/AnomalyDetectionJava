@@ -1,5 +1,6 @@
 package com.anomalydetection.application.multitenancy;
 
+import com.anomalydetection.contracts.identity.IdentityPermissions;
 import com.anomalydetection.contracts.multitenancy.CreateTenantDto;
 import com.anomalydetection.contracts.multitenancy.GetTenantsInputDto;
 import com.anomalydetection.contracts.multitenancy.TenantDto;
@@ -9,6 +10,7 @@ import com.anomalydetection.domain.multitenancy.TenantRepository;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,6 +25,7 @@ public class TenantAppService {
   }
 
   @Transactional(readOnly = true)
+  @PreAuthorize("hasAuthority('" + IdentityPermissions.TENANTS_VIEW + "')")
   public PagedResultDto<TenantDto> getList(GetTenantsInputDto input) {
     String filter = input != null && input.filter() != null ? input.filter().toLowerCase() : "";
     List<Tenant> all = tenantRepository.findAll();
@@ -39,10 +42,12 @@ public class TenantAppService {
   }
 
   @Transactional(readOnly = true)
+  @PreAuthorize("hasAuthority('" + IdentityPermissions.TENANTS_VIEW + "')")
   public Optional<TenantDto> getById(UUID id) {
     return tenantRepository.findById(id).map(this::toDto);
   }
 
+  @PreAuthorize("hasAuthority('" + IdentityPermissions.TENANTS_CREATE + "')")
   public TenantDto create(CreateTenantDto input) {
     if (tenantRepository.existsByNormalizedName(input.name().toUpperCase())) {
       throw new IllegalArgumentException("Tenant already exists: " + input.name());
@@ -51,6 +56,7 @@ public class TenantAppService {
     return toDto(tenantRepository.save(tenant));
   }
 
+  @PreAuthorize("hasAuthority('" + IdentityPermissions.TENANTS_EDIT + "')")
   public Optional<TenantDto> setActive(UUID id, boolean active) {
     return tenantRepository.findById(id).map(tenant -> {
       tenant.setActive(active);
@@ -58,6 +64,7 @@ public class TenantAppService {
     });
   }
 
+  @PreAuthorize("hasAuthority('" + IdentityPermissions.TENANTS_DELETE + "')")
   public boolean delete(UUID id) {
     if (!tenantRepository.existsById(id)) return false;
     tenantRepository.deleteById(id);

@@ -13,4 +13,11 @@ public interface AnomalyDetectionProjectRepository
   Optional<AnomalyDetectionProject> findByProjectCode(String projectCode);
 
   List<AnomalyDetectionProject> findAllByOemCode(String oemCode);
+
+  /**
+   * Searches projects with DB-side filtering and paging.
+   *
+   * <p>Implemented by the infrastructure repository (Criteria API).
+   */
+  ProjectSearchResult search(ProjectSearchCriteria criteria);
 }

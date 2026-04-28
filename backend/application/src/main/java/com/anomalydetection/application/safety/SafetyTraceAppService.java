@@ -1,5 +1,6 @@
 package com.anomalydetection.application.safety;
 
+import com.anomalydetection.contracts.safety.SafetyTracePermissions;
 import com.anomalydetection.contracts.safety.CreateSafetyTraceLinkDto;
 import com.anomalydetection.contracts.safety.CreateSafetyTraceRecordDto;
 import com.anomalydetection.contracts.safety.GetSafetyTraceInput;
@@ -16,6 +17,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,6 +39,7 @@ public class SafetyTraceAppService {
   }
 
   @Transactional(readOnly = true)
+  @PreAuthorize("hasAuthority('" + SafetyTracePermissions.DEFAULT + "')")
   public List<SafetyTraceRecordDto> getList(GetSafetyTraceInput input) {
     var all = recordRepo.findAll().stream()
         .filter(r -> {
@@ -73,10 +76,12 @@ public class SafetyTraceAppService {
   }
 
   @Transactional(readOnly = true)
+  @PreAuthorize("hasAuthority('" + SafetyTracePermissions.DEFAULT + "')")
   public Optional<SafetyTraceRecordDto> getById(UUID id) {
     return recordRepo.findById(id).map(this::toDto);
   }
 
+  @PreAuthorize("hasAuthority('" + SafetyTracePermissions.CREATE + "')")
   public SafetyTraceRecordDto create(CreateSafetyTraceRecordDto input) {
     var record = new SafetyTraceRecord(UUID.randomUUID(), input.name(),
         input.asilLevel() != null ? input.asilLevel() : "QM");
@@ -92,6 +97,7 @@ public class SafetyTraceAppService {
     return toDto(recordRepo.save(record));
   }
 
+  @PreAuthorize("hasAuthority('" + SafetyTracePermissions.EDIT + "')")
   public Optional<SafetyTraceRecordDto> update(UUID id, UpdateSafetyTraceRecordDto input) {
     return recordRepo.findById(id).map(r -> {
       r.setName(input.name());
@@ -109,14 +115,14 @@ public class SafetyTraceAppService {
     });
   }
 
+  @PreAuthorize("hasAuthority('" + SafetyTracePermissions.DELETE + "')")
   public boolean delete(UUID id) {
-    return recordRepo.findById(id).map(r -> {
-      r.softDelete(null);
-      recordRepo.save(r);
-      return true;
-    }).orElse(false);
+    if (!recordRepo.existsById(id)) return false;
+    recordRepo.deleteById(id);
+    return true;
   }
 
+  @PreAuthorize("hasAuthority('" + SafetyTracePermissions.EDIT + "')")
   public Optional<SafetyTraceRecordDto> submit(UUID id) {
     return recordRepo.findById(id).map(r -> {
       r.submit(null);
@@ -124,6 +130,7 @@ public class SafetyTraceAppService {
     });
   }
 
+  @PreAuthorize("hasAuthority('" + SafetyTracePermissions.APPROVE + "')")
   public Optional<SafetyTraceRecordDto> approve(UUID id, String comments) {
     return recordRepo.findById(id).map(r -> {
       r.approve(null, comments);
@@ -131,6 +138,7 @@ public class SafetyTraceAppService {
     });
   }
 
+  @PreAuthorize("hasAuthority('" + SafetyTracePermissions.APPROVE + "')")
   public Optional<SafetyTraceRecordDto> reject(UUID id, String comments) {
     return recordRepo.findById(id).map(r -> {
       r.reject(null, comments);
@@ -141,6 +149,7 @@ public class SafetyTraceAppService {
   // --- Links ---
 
   @Transactional(readOnly = true)
+  @PreAuthorize("hasAuthority('" + SafetyTracePermissions.DEFAULT + "')")
   public List<SafetyTraceLinkDto> getLinks(UUID recordId) {
     var sources = linkRepo.findAllBySourceRecordId(recordId);
     var targets = linkRepo.findAllByTargetRecordId(recordId);
@@ -150,6 +159,7 @@ public class SafetyTraceAppService {
         .toList();
   }
 
+  @PreAuthorize("hasAuthority('" + SafetyTracePermissions.CREATE + "')")
   public SafetyTraceLinkDto createLink(CreateSafetyTraceLinkDto input) {
     var link = new SafetyTraceLink(
         UUID.randomUUID(),
@@ -160,12 +170,11 @@ public class SafetyTraceAppService {
     return toLinkDto(linkRepo.save(link));
   }
 
+  @PreAuthorize("hasAuthority('" + SafetyTracePermissions.DELETE + "')")
   public boolean deleteLink(UUID id) {
-    return linkRepo.findById(id).map(l -> {
-      l.softDelete(null);
-      linkRepo.save(l);
-      return true;
-    }).orElse(false);
+    if (!linkRepo.existsById(id)) return false;
+    linkRepo.deleteById(id);
+    return true;
   }
 
   // --- Mappers ---

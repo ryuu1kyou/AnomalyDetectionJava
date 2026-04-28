@@ -2,6 +2,7 @@ package com.anomalydetection.application.identity;
 
 import com.anomalydetection.contracts.identity.CreateUserDto;
 import com.anomalydetection.contracts.identity.GetUsersInputDto;
+import com.anomalydetection.contracts.identity.IdentityPermissions;
 import com.anomalydetection.contracts.identity.UpdateUserDto;
 import com.anomalydetection.contracts.identity.UserDto;
 import com.anomalydetection.contracts.projects.PagedResultDto;
@@ -11,6 +12,7 @@ import com.anomalydetection.domain.multitenancy.ICurrentTenant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,6 +35,7 @@ public class UserAppService {
   }
 
   @Transactional(readOnly = true)
+  @PreAuthorize("hasAuthority('" + IdentityPermissions.USERS_VIEW + "')")
   public PagedResultDto<UserDto> getList(GetUsersInputDto input) {
     String filter = input != null && input.filter() != null ? input.filter().toLowerCase() : "";
     List<User> all = userRepository.findAll();
@@ -51,10 +54,12 @@ public class UserAppService {
   }
 
   @Transactional(readOnly = true)
+  @PreAuthorize("hasAuthority('" + IdentityPermissions.USERS_VIEW + "')")
   public Optional<UserDto> getById(UUID id) {
     return userRepository.findById(id).map(this::toDto);
   }
 
+  @PreAuthorize("hasAuthority('" + IdentityPermissions.USERS_CREATE + "')")
   public UserDto create(CreateUserDto input) {
     var user = new User(UUID.randomUUID(), input.userName(), input.userName().toUpperCase());
     currentTenant.getTenantId().ifPresent(user::setTenantId);
@@ -67,6 +72,7 @@ public class UserAppService {
     return toDto(userRepository.save(user));
   }
 
+  @PreAuthorize("hasAuthority('" + IdentityPermissions.USERS_EDIT + "')")
   public Optional<UserDto> update(UUID id, UpdateUserDto input) {
     return userRepository.findById(id).map(user -> {
       user.setEmail(input.email());
@@ -76,6 +82,7 @@ public class UserAppService {
     });
   }
 
+  @PreAuthorize("hasAuthority('" + IdentityPermissions.USERS_DELETE + "')")
   public boolean delete(UUID id) {
     if (!userRepository.existsById(id)) return false;
     userRepository.deleteById(id);

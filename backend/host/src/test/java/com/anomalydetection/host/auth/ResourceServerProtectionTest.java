@@ -7,6 +7,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.anomalydetection.AnomalyDetectionApplication;
 import com.anomalydetection.host.support.MariaDB4jExtension;
 import org.junit.jupiter.api.Test;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -39,7 +40,8 @@ class ResourceServerProtectionTest {
   @Test
   void apiEndpointReturns200WithValidJwt() throws Exception {
     mockMvc
-        .perform(get("/api/app/tenants").with(jwt()))
+        .perform(get("/api/app/tenants").with(
+            jwt().authorities(new SimpleGrantedAuthority("AnomalyDetection.Identity.Tenants.View"))))
         .andExpect(status().isOk());
   }
 

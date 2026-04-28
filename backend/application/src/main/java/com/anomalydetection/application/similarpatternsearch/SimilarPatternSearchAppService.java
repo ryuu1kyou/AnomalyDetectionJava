@@ -1,5 +1,6 @@
 package com.anomalydetection.application.similarpatternsearch;
 
+import com.anomalydetection.contracts.similarpatternsearch.SimilarPatternSearchPermissions;
 import com.anomalydetection.contracts.similarpatternsearch.SimilarSignalResultDto;
 import com.anomalydetection.contracts.similarpatternsearch.SimilarSignalSearchRequestDto;
 import com.anomalydetection.contracts.similarpatternsearch.TestDataComparisonDto;
@@ -17,6 +18,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,6 +39,7 @@ public class SimilarPatternSearchAppService {
     this.resultRepo = resultRepo;
   }
 
+  @PreAuthorize("hasAuthority('" + SimilarPatternSearchPermissions.SEARCH_SIGNALS + "')")
   public List<SimilarSignalResultDto> searchSimilarSignals(SimilarSignalSearchRequestDto request) {
     var target = canSignalRepo.findById(request.targetSignalId()).orElseThrow(
         () -> new IllegalArgumentException("Signal not found: " + request.targetSignalId()));
@@ -72,6 +75,7 @@ public class SimilarPatternSearchAppService {
         .toList();
   }
 
+  @PreAuthorize("hasAuthority('" + SimilarPatternSearchPermissions.COMPARE_TEST_DATA + "')")
   public TestDataComparisonDto compareTestData(TestDataComparisonRequestDto request) {
     int maxResults = request.maxResults() > 0 ? request.maxResults() : 1000;
 
@@ -112,6 +116,7 @@ public class SimilarPatternSearchAppService {
         recommendations);
   }
 
+  @PreAuthorize("hasAuthority('" + SimilarPatternSearchPermissions.DEFAULT + "')")
   public List<SimilarSignalResultDto> getRecommendations(UUID signalId, int maxRecommendations) {
     var request = new SimilarSignalSearchRequestDto(
         signalId, null, 0.5, maxRecommendations * 2, true, true, false);

@@ -6,11 +6,13 @@ import com.anomalydetection.domain.anomalydetection.AnomalyType;
 import com.anomalydetection.domain.anomalydetection.CanAnomalyDetectionLogic;
 import com.anomalydetection.domain.anomalydetection.CanAnomalyDetectionLogicRepository;
 import com.anomalydetection.domain.anomalydetection.DetectionLogicStatus;
+import com.anomalydetection.contracts.anomalydetection.AnomalyDetectionPermissions;
 import com.anomalydetection.domain.anomalydetection.SharingLevel;
 import com.anomalydetection.domain.multitenancy.ICurrentTenant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,30 +30,36 @@ public class CanAnomalyDetectionLogicAppService {
   }
 
   @Transactional(readOnly = true)
+  @PreAuthorize("hasAuthority('" + AnomalyDetectionPermissions.LOGIC_DEFAULT + "')")
   public List<CanAnomalyDetectionLogicDto> getList() {
     return repository.findAll().stream().map(this::toDto).toList();
   }
 
   @Transactional(readOnly = true)
+  @PreAuthorize("hasAuthority('" + AnomalyDetectionPermissions.LOGIC_DEFAULT + "')")
   public Optional<CanAnomalyDetectionLogicDto> getById(UUID id) {
     return repository.findById(id).map(this::toDto);
   }
 
   @Transactional(readOnly = true)
+  @PreAuthorize("hasAuthority('" + AnomalyDetectionPermissions.LOGIC_DEFAULT + "')")
   public List<CanAnomalyDetectionLogicDto> getByStatus(DetectionLogicStatus status) {
     return repository.findAllByStatus(status).stream().map(this::toDto).toList();
   }
 
   @Transactional(readOnly = true)
+  @PreAuthorize("hasAuthority('" + AnomalyDetectionPermissions.LOGIC_DEFAULT + "')")
   public List<CanAnomalyDetectionLogicDto> getByAnomalyType(AnomalyType type) {
     return repository.findAllByAnomalyType(type).stream().map(this::toDto).toList();
   }
 
   @Transactional(readOnly = true)
+  @PreAuthorize("hasAuthority('" + AnomalyDetectionPermissions.LOGIC_DEFAULT + "')")
   public List<CanAnomalyDetectionLogicDto> getBySharingLevel(SharingLevel level) {
     return repository.findAllBySharingLevel(level).stream().map(this::toDto).toList();
   }
 
+  @PreAuthorize("hasAuthority('" + AnomalyDetectionPermissions.LOGIC_CREATE + "')")
   public CanAnomalyDetectionLogicDto create(CreateUpdateCanAnomalyDetectionLogicDto input) {
     var entity = new CanAnomalyDetectionLogic(
         UUID.randomUUID(),
@@ -62,6 +70,7 @@ public class CanAnomalyDetectionLogicAppService {
     return toDto(repository.save(entity));
   }
 
+  @PreAuthorize("hasAuthority('" + AnomalyDetectionPermissions.LOGIC_EDIT + "')")
   public Optional<CanAnomalyDetectionLogicDto> update(
       UUID id, CreateUpdateCanAnomalyDetectionLogicDto input) {
     return repository.findById(id)
@@ -71,12 +80,14 @@ public class CanAnomalyDetectionLogicAppService {
         });
   }
 
+  @PreAuthorize("hasAuthority('" + AnomalyDetectionPermissions.LOGIC_DELETE + "')")
   public boolean delete(UUID id) {
     if (!repository.existsById(id)) return false;
     repository.deleteById(id);
     return true;
   }
 
+  @PreAuthorize("hasAuthority('" + AnomalyDetectionPermissions.LOGIC_EDIT + "')")
   public Optional<CanAnomalyDetectionLogicDto> submitForApproval(UUID id) {
     return repository.findById(id)
         .map(entity -> {
@@ -85,6 +96,7 @@ public class CanAnomalyDetectionLogicAppService {
         });
   }
 
+  @PreAuthorize("hasAuthority('" + AnomalyDetectionPermissions.LOGIC_APPROVE + "')")
   public Optional<CanAnomalyDetectionLogicDto> approve(UUID id, UUID approvedBy, String notes) {
     return repository.findById(id)
         .map(entity -> {
@@ -93,6 +105,7 @@ public class CanAnomalyDetectionLogicAppService {
         });
   }
 
+  @PreAuthorize("hasAuthority('" + AnomalyDetectionPermissions.LOGIC_APPROVE + "')")
   public Optional<CanAnomalyDetectionLogicDto> reject(UUID id, String reason) {
     return repository.findById(id)
         .map(entity -> {
@@ -101,6 +114,7 @@ public class CanAnomalyDetectionLogicAppService {
         });
   }
 
+  @PreAuthorize("hasAuthority('" + AnomalyDetectionPermissions.LOGIC_APPROVE + "')")
   public Optional<CanAnomalyDetectionLogicDto> deprecate(UUID id, String reason) {
     return repository.findById(id)
         .map(entity -> {

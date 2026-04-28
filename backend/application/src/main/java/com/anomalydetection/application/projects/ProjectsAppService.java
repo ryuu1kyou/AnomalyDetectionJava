@@ -9,6 +9,7 @@ import com.anomalydetection.contracts.projects.PagedResultDto;
 import com.anomalydetection.contracts.projects.ProjectDto;
 import com.anomalydetection.contracts.projects.ProjectMemberDto;
 import com.anomalydetection.contracts.projects.ProjectMilestoneDto;
+import com.anomalydetection.contracts.projects.ProjectPermissions;
 import com.anomalydetection.contracts.projects.ProjectPriority;
 import com.anomalydetection.contracts.projects.ProjectStatus;
 import com.anomalydetection.contracts.projects.UpdateProjectDto;
@@ -16,6 +17,7 @@ import com.anomalydetection.contracts.projects.UpdateProjectMemberDto;
 import com.anomalydetection.contracts.projects.UpdateProjectMilestoneDto;
 import com.anomalydetection.domain.projects.AnomalyDetectionProject;
 import com.anomalydetection.domain.projects.AnomalyDetectionProjectRepository;
+import com.anomalydetection.domain.projects.ProjectSearchCriteria;
 import com.anomalydetection.domain.projects.ProjectMember;
 import com.anomalydetection.domain.projects.ProjectMemberRepository;
 import com.anomalydetection.domain.projects.ProjectMilestone;
@@ -27,6 +29,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -51,53 +54,32 @@ public class ProjectsAppService {
   }
 
   @Transactional(readOnly = true)
+  @PreAuthorize("hasAuthority('" + ProjectPermissions.DEFAULT + "')")
   public PagedResultDto<ProjectDto> getList(GetProjectsInputDto input) {
-    final String filter = input.filter() == null ? "" : input.filter().trim().toLowerCase();
-
-    var filtered =
-        projectRepo.findAll().stream()
-            .filter(
-                p -> {
-                  if (!filter.isBlank()) {
-                    var hay = (p.getProjectCode() + " " + p.getName()).toLowerCase();
-                    if (!hay.contains(filter)) return false;
-                  }
-                  if (input.status() != null) {
-                    var s = ProjectStatus.fromCode(input.status());
-                    if (!p.getStatus().equals(s.name())) return false;
-                  }
-                  if (input.priority() != null) {
-                    var pr = ProjectPriority.fromCode(input.priority());
-                    if (!p.getPriority().equals(pr.name())) return false;
-                  }
-                  if (input.vehicleModel() != null && !input.vehicleModel().isBlank()) {
-                    if (p.getVehicleModel() == null
-                        || !p.getVehicleModel()
-                            .toLowerCase()
-                            .contains(input.vehicleModel().toLowerCase())) return false;
-                  }
-                  if (input.primarySystem() != null && !input.primarySystem().isBlank()) {
-                    if (p.getPrimarySystem() == null
-                        || !p.getPrimarySystem()
-                            .toLowerCase()
-                            .contains(input.primarySystem().toLowerCase())) return false;
-                  }
-                  return true;
-                })
-            .sorted(Comparator.comparing(AnomalyDetectionProject::getProjectCode,
-                String.CASE_INSENSITIVE_ORDER))
-            .toList();
-
     int skip = Optional.ofNullable(input.skipCount()).orElse(0);
     int take = Optional.ofNullable(input.maxResultCount()).orElse(10);
     if (skip < 0) skip = 0;
     if (take <= 0) take = 10;
 
-    var page = filtered.stream().skip(skip).limit(take).map(this::toDto).toList();
-    return PagedResultDto.of(page, filtered.size());
+    String status = input.status() != null ? ProjectStatus.fromCode(input.status()).name() : null;
+    String priority = input.priority() != null ? ProjectPriority.fromCode(input.priority()).name() : null;
+
+    var result = projectRepo.search(new ProjectSearchCriteria(
+        input.filter(),
+        status,
+        priority,
+        input.vehicleModel(),
+        input.primarySystem(),
+        skip,
+        take,
+        input.sorting()));
+
+    var items = result.items().stream().map(this::toDto).toList();
+    return PagedResultDto.of(items, result.totalCount());
   }
 
   @Transactional(readOnly = true)
+  @PreAuthorize("hasAuthority('" + ProjectPermissions.DEFAULT + "')")
   public Optional<ProjectDto> getById(String id) {
     try {
       return projectRepo.findById(UUID.fromString(id)).map(this::toDto);
@@ -106,6 +88,7 @@ public class ProjectsAppService {
     }
   }
 
+  @PreAuthorize("hasAuthority('" + ProjectPermissions.CREATE + "')")
   public ProjectDto create(CreateProjectDto input) {
     var project = new AnomalyDetectionProject(
         UUID.randomUUID(),
@@ -128,6 +111,7 @@ public class ProjectsAppService {
     return toDto(projectRepo.save(project));
   }
 
+  @PreAuthorize("hasAuthority('" + ProjectPermissions.EDIT + "')")
   public Optional<ProjectDto> update(String id, UpdateProjectDto input) {
     return projectRepo.findById(UUID.fromString(id)).map(p -> {
       p.setName(input.projectName());
@@ -150,17 +134,23 @@ public class ProjectsAppService {
     });
   }
 
+  @PreAuthorize("hasAuthority('" + ProjectPermissions.DELETE + "')")
   public boolean delete(String id) {
-    return projectRepo.findById(UUID.fromString(id)).map(p -> {
-      p.softDelete(null);
-      projectRepo.save(p);
-      return true;
-    }).orElse(false);
+    UUID uuid;
+    try {
+      uuid = UUID.fromString(id);
+    } catch (IllegalArgumentException e) {
+      return false;
+    }
+    if (!projectRepo.existsById(uuid)) return false;
+    projectRepo.deleteById(uuid);
+    return true;
   }
 
   // --- Milestones ---
 
   @Transactional(readOnly = true)
+  @PreAuthorize("hasAuthority('" + ProjectPermissions.DEFAULT + "')")
   public List<ProjectMilestoneDto> getMilestones(String projectId) {
     UUID pid = UUID.fromString(projectId);
     return milestoneRepo.findAllByProjectId(pid).stream()
@@ -169,6 +159,7 @@ public class ProjectsAppService {
         .toList();
   }
 
+  @PreAuthorize("hasAuthority('" + ProjectPermissions.MANAGE_MILESTONES + "')")
   public ProjectMilestoneDto createMilestone(CreateProjectMilestoneDto input) {
     var milestone = new ProjectMilestone(
         UUID.randomUUID(), UUID.fromString(input.projectId()), input.name());
@@ -179,6 +170,7 @@ public class ProjectsAppService {
     return toMilestoneDto(milestoneRepo.save(milestone));
   }
 
+  @PreAuthorize("hasAuthority('" + ProjectPermissions.MANAGE_MILESTONES + "')")
   public Optional<ProjectMilestoneDto> updateMilestone(String milestoneId, UpdateProjectMilestoneDto input) {
     return milestoneRepo.findById(UUID.fromString(milestoneId)).map(m -> {
       m.setName(input.name());
@@ -193,14 +185,20 @@ public class ProjectsAppService {
     });
   }
 
+  @PreAuthorize("hasAuthority('" + ProjectPermissions.MANAGE_MILESTONES + "')")
   public boolean deleteMilestone(String milestoneId) {
-    return milestoneRepo.findById(UUID.fromString(milestoneId)).map(m -> {
-      m.softDelete(null);
-      milestoneRepo.save(m);
-      return true;
-    }).orElse(false);
+    UUID uuid;
+    try {
+      uuid = UUID.fromString(milestoneId);
+    } catch (IllegalArgumentException e) {
+      return false;
+    }
+    if (!milestoneRepo.existsById(uuid)) return false;
+    milestoneRepo.deleteById(uuid);
+    return true;
   }
 
+  @PreAuthorize("hasAuthority('" + ProjectPermissions.MANAGE_MILESTONES + "')")
   public Optional<ProjectMilestoneDto> completeMilestone(String milestoneId) {
     return milestoneRepo.findById(UUID.fromString(milestoneId)).map(m -> {
       m.setStatus(MilestoneStatus.Completed.name());
@@ -213,6 +211,7 @@ public class ProjectsAppService {
   // --- Members ---
 
   @Transactional(readOnly = true)
+  @PreAuthorize("hasAuthority('" + ProjectPermissions.DEFAULT + "')")
   public List<ProjectMemberDto> getMembers(String projectId) {
     UUID pid = UUID.fromString(projectId);
     return memberRepo.findAllByProjectId(pid).stream()
@@ -221,6 +220,7 @@ public class ProjectsAppService {
         .toList();
   }
 
+  @PreAuthorize("hasAuthority('" + ProjectPermissions.MANAGE_MEMBERS + "')")
   public ProjectMemberDto addMember(CreateProjectMemberDto input) {
     UUID userId;
     try {
@@ -239,6 +239,7 @@ public class ProjectsAppService {
     return toMemberDto(memberRepo.save(member));
   }
 
+  @PreAuthorize("hasAuthority('" + ProjectPermissions.MANAGE_MEMBERS + "')")
   public Optional<ProjectMemberDto> updateMember(String memberId, UpdateProjectMemberDto input) {
     return memberRepo.findById(UUID.fromString(memberId)).map(m -> {
       m.setRole(input.role());
@@ -252,12 +253,17 @@ public class ProjectsAppService {
     });
   }
 
+  @PreAuthorize("hasAuthority('" + ProjectPermissions.MANAGE_MEMBERS + "')")
   public boolean removeMember(String memberId) {
-    return memberRepo.findById(UUID.fromString(memberId)).map(m -> {
-      m.softDelete(null);
-      memberRepo.save(m);
-      return true;
-    }).orElse(false);
+    UUID uuid;
+    try {
+      uuid = UUID.fromString(memberId);
+    } catch (IllegalArgumentException e) {
+      return false;
+    }
+    if (!memberRepo.existsById(uuid)) return false;
+    memberRepo.deleteById(uuid);
+    return true;
   }
 
   // --- Mappers ---

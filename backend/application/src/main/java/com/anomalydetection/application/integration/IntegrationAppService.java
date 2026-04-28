@@ -7,6 +7,7 @@ import com.anomalydetection.contracts.integration.DataImportRequestDto;
 import com.anomalydetection.contracts.integration.ImportResultDto;
 import com.anomalydetection.contracts.integration.IntegrationEndpointDto;
 import com.anomalydetection.contracts.integration.IntegrationLogDto;
+import com.anomalydetection.contracts.integration.IntegrationPermissions;
 import com.anomalydetection.contracts.integration.WebhookSubscriptionDto;
 import com.anomalydetection.domain.integration.DataImportRequest;
 import com.anomalydetection.domain.integration.DataImportRequestRepository;
@@ -19,6 +20,7 @@ import com.anomalydetection.domain.integration.WebhookSubscriptionRepository;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -45,15 +47,18 @@ public class IntegrationAppService {
   // --- Endpoints ---
 
   @Transactional(readOnly = true)
+  @PreAuthorize("hasAuthority('" + IntegrationPermissions.DEFAULT + "')")
   public List<IntegrationEndpointDto> getEndpoints() {
     return endpointRepo.findAll().stream().map(this::toEndpointDto).toList();
   }
 
   @Transactional(readOnly = true)
+  @PreAuthorize("hasAuthority('" + IntegrationPermissions.DEFAULT + "')")
   public Optional<IntegrationEndpointDto> getEndpointById(UUID id) {
     return endpointRepo.findById(id).map(this::toEndpointDto);
   }
 
+  @PreAuthorize("hasAuthority('" + IntegrationPermissions.CREATE + "')")
   public IntegrationEndpointDto createEndpoint(CreateIntegrationEndpointDto input) {
     var endpoint = new IntegrationEndpoint(
         UUID.randomUUID(), input.name(), input.type(), input.baseUrl(), input.description());
@@ -62,6 +67,7 @@ public class IntegrationAppService {
     return toEndpointDto(endpointRepo.save(endpoint));
   }
 
+  @PreAuthorize("hasAuthority('" + IntegrationPermissions.MANAGE + "')")
   public Optional<IntegrationEndpointDto> updateEndpoint(UUID id, CreateIntegrationEndpointDto input) {
     return endpointRepo.findById(id).map(e -> {
       e.setName(input.name());
@@ -73,12 +79,11 @@ public class IntegrationAppService {
     });
   }
 
+  @PreAuthorize("hasAuthority('" + IntegrationPermissions.MANAGE + "')")
   public boolean deleteEndpoint(UUID id) {
-    return endpointRepo.findById(id).map(e -> {
-      e.softDelete(null);
-      endpointRepo.save(e);
-      return true;
-    }).orElse(false);
+    if (!endpointRepo.existsById(id)) return false;
+    endpointRepo.deleteById(id);
+    return true;
   }
 
   public boolean testConnection(UUID id) {
@@ -91,16 +96,19 @@ public class IntegrationAppService {
   // --- Webhooks ---
 
   @Transactional(readOnly = true)
+  @PreAuthorize("hasAuthority('" + IntegrationPermissions.DEFAULT + "')")
   public List<WebhookSubscriptionDto> getWebhooks(UUID endpointId) {
     return webhookRepo.findAllByEndpointId(endpointId).stream().map(this::toWebhookDto).toList();
   }
 
+  @PreAuthorize("hasAuthority('" + IntegrationPermissions.MANAGE + "')")
   public WebhookSubscriptionDto createWebhook(UUID endpointId, CreateWebhookSubscriptionDto input) {
     var webhook = new WebhookSubscription(
         UUID.randomUUID(), endpointId, input.eventType(), input.targetUrl(), input.isActive());
     return toWebhookDto(webhookRepo.save(webhook));
   }
 
+  @PreAuthorize("hasAuthority('" + IntegrationPermissions.MANAGE + "')")
   public Optional<WebhookSubscriptionDto> updateWebhook(UUID id, CreateWebhookSubscriptionDto input) {
     return webhookRepo.findById(id).map(w -> {
       w.setEventType(input.eventType());
@@ -110,23 +118,24 @@ public class IntegrationAppService {
     });
   }
 
+  @PreAuthorize("hasAuthority('" + IntegrationPermissions.MANAGE + "')")
   public boolean deleteWebhook(UUID id) {
-    return webhookRepo.findById(id).map(w -> {
-      w.softDelete(null);
-      webhookRepo.save(w);
-      return true;
-    }).orElse(false);
+    if (!webhookRepo.existsById(id)) return false;
+    webhookRepo.deleteById(id);
+    return true;
   }
 
   // --- Logs ---
 
   @Transactional(readOnly = true)
+  @PreAuthorize("hasAuthority('" + IntegrationPermissions.DEFAULT + "')")
   public List<IntegrationLogDto> getLogs(UUID endpointId) {
     return logRepo.findAllByEndpointId(endpointId).stream().map(this::toLogDto).toList();
   }
 
   // --- Import ---
 
+  @PreAuthorize("hasAuthority('" + IntegrationPermissions.IMPORT_DATA + "')")
   public ImportResultDto importData(CreateDataImportRequestDto input) {
     var endpoint = endpointRepo.findById(input.endpointId()).orElse(null);
     if (endpoint == null) return new ImportResultDto(false, 0, "Endpoint not found");
@@ -157,10 +166,12 @@ public class IntegrationAppService {
   }
 
   @Transactional(readOnly = true)
+  @PreAuthorize("hasAuthority('" + IntegrationPermissions.DEFAULT + "')")
   public List<DataImportRequestDto> getImportHistory() {
     return importRepo.findAll().stream().map(this::toImportDto).toList();
   }
 
+  @PreAuthorize("hasAuthority('" + IntegrationPermissions.IMPORT_DATA + "')")
   public ImportResultDto retryImport(UUID id) {
     return importRepo.findById(id).map(original -> {
       var dto = new CreateDataImportRequestDto(

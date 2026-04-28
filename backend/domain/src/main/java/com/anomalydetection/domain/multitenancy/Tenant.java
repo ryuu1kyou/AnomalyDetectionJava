@@ -6,9 +6,13 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.util.UUID;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
 @Entity
 @Table(name = "tenants")
+@SQLDelete(sql = "UPDATE tenants SET is_deleted = true, deleted_at = CURRENT_TIMESTAMP(6) WHERE id = ?")
+@SQLRestriction("is_deleted = false")
 public class Tenant extends FullAuditedEntity<UUID> {
 
   @Id

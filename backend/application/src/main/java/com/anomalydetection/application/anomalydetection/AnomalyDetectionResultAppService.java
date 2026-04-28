@@ -1,5 +1,6 @@
 package com.anomalydetection.application.anomalydetection;
 
+import com.anomalydetection.contracts.anomalydetection.AnomalyDetectionPermissions;
 import com.anomalydetection.contracts.anomalydetection.AnomalyDetectionResultDto;
 import com.anomalydetection.contracts.anomalydetection.CreateAnomalyDetectionResultDto;
 import com.anomalydetection.domain.anomalydetection.AnomalyDetectionResult;
@@ -11,6 +12,7 @@ import com.anomalydetection.domain.multitenancy.ICurrentTenant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,36 +30,43 @@ public class AnomalyDetectionResultAppService {
   }
 
   @Transactional(readOnly = true)
+  @PreAuthorize("hasAuthority('" + AnomalyDetectionPermissions.RESULT_DEFAULT + "')")
   public List<AnomalyDetectionResultDto> getList() {
     return repository.findAll().stream().map(this::toDto).toList();
   }
 
   @Transactional(readOnly = true)
+  @PreAuthorize("hasAuthority('" + AnomalyDetectionPermissions.RESULT_DEFAULT + "')")
   public Optional<AnomalyDetectionResultDto> getById(UUID id) {
     return repository.findById(id).map(this::toDto);
   }
 
   @Transactional(readOnly = true)
+  @PreAuthorize("hasAuthority('" + AnomalyDetectionPermissions.RESULT_DEFAULT + "')")
   public List<AnomalyDetectionResultDto> getByDetectionLogicId(UUID logicId) {
     return repository.findAllByDetectionLogicId(logicId).stream().map(this::toDto).toList();
   }
 
   @Transactional(readOnly = true)
+  @PreAuthorize("hasAuthority('" + AnomalyDetectionPermissions.RESULT_DEFAULT + "')")
   public List<AnomalyDetectionResultDto> getByCanSignalId(UUID canSignalId) {
     return repository.findAllByCanSignalId(canSignalId).stream().map(this::toDto).toList();
   }
 
   @Transactional(readOnly = true)
+  @PreAuthorize("hasAuthority('" + AnomalyDetectionPermissions.RESULT_DEFAULT + "')")
   public List<AnomalyDetectionResultDto> getUnresolved() {
     return repository.findAllByResolutionStatus(ResolutionStatus.OPEN).stream()
         .map(this::toDto).toList();
   }
 
   @Transactional(readOnly = true)
+  @PreAuthorize("hasAuthority('" + AnomalyDetectionPermissions.RESULT_DEFAULT + "')")
   public List<AnomalyDetectionResultDto> getByAnomalyLevel(AnomalyLevel level) {
     return repository.findAllByAnomalyLevel(level).stream().map(this::toDto).toList();
   }
 
+  @PreAuthorize("hasAuthority('" + AnomalyDetectionPermissions.RESULT_CREATE + "')")
   public AnomalyDetectionResultDto create(CreateAnomalyDetectionResultDto input) {
     var entity = new AnomalyDetectionResult(
         UUID.randomUUID(),
@@ -78,12 +87,14 @@ public class AnomalyDetectionResultAppService {
     return toDto(repository.save(entity));
   }
 
+  @PreAuthorize("hasAuthority('" + AnomalyDetectionPermissions.RESULT_DELETE + "')")
   public boolean delete(UUID id) {
     if (!repository.existsById(id)) return false;
     repository.deleteById(id);
     return true;
   }
 
+  @PreAuthorize("hasAuthority('" + AnomalyDetectionPermissions.RESULT_EDIT + "')")
   public Optional<AnomalyDetectionResultDto> resolve(UUID id, UUID resolvedBy, String notes) {
     return repository.findById(id)
         .map(entity -> {
@@ -92,6 +103,7 @@ public class AnomalyDetectionResultAppService {
         });
   }
 
+  @PreAuthorize("hasAuthority('" + AnomalyDetectionPermissions.RESULT_EDIT + "')")
   public Optional<AnomalyDetectionResultDto> markAsFalsePositive(
       UUID id, UUID resolvedBy, String reason) {
     return repository.findById(id)
@@ -101,6 +113,7 @@ public class AnomalyDetectionResultAppService {
         });
   }
 
+  @PreAuthorize("hasAuthority('" + AnomalyDetectionPermissions.RESULT_EDIT + "')")
   public Optional<AnomalyDetectionResultDto> share(UUID id, SharingLevel level, UUID sharedBy) {
     return repository.findById(id)
         .map(entity -> {

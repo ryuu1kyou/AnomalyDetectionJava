@@ -4,6 +4,7 @@ import com.anomalydetection.contracts.oemtraceability.CreateOemApprovalDto;
 import com.anomalydetection.contracts.oemtraceability.CreateOemCustomizationDto;
 import com.anomalydetection.contracts.oemtraceability.OemApprovalDto;
 import com.anomalydetection.contracts.oemtraceability.OemCustomizationDto;
+import com.anomalydetection.contracts.oemtraceability.OemTraceabilityPermissions;
 import com.anomalydetection.domain.oemtraceability.OemApproval;
 import com.anomalydetection.domain.oemtraceability.OemApprovalRepository;
 import com.anomalydetection.domain.oemtraceability.OemApprovalStatus;
@@ -14,6 +15,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,6 +36,7 @@ public class OemTraceabilityAppService {
   // --- Approvals ---
 
   @Transactional(readOnly = true)
+  @PreAuthorize("hasAuthority('" + OemTraceabilityPermissions.APPROVAL_DEFAULT + "')")
   public List<OemApprovalDto> getApprovals(String oemCode, String status) {
     List<OemApproval> results;
     if (status != null && !status.isBlank()) {
@@ -51,10 +54,12 @@ public class OemTraceabilityAppService {
   }
 
   @Transactional(readOnly = true)
+  @PreAuthorize("hasAuthority('" + OemTraceabilityPermissions.APPROVAL_DEFAULT + "')")
   public Optional<OemApprovalDto> getApprovalById(UUID id) {
     return approvalRepo.findById(id).map(this::toApprovalDto);
   }
 
+  @PreAuthorize("hasAuthority('" + OemTraceabilityPermissions.APPROVAL_CREATE + "')")
   public OemApprovalDto createApproval(CreateOemApprovalDto input) {
     var approval = new OemApproval(UUID.randomUUID(), input.entityId(), input.entityType(),
         input.oemCode(), input.type());
@@ -65,6 +70,7 @@ public class OemTraceabilityAppService {
     return toApprovalDto(approvalRepo.save(approval));
   }
 
+  @PreAuthorize("hasAuthority('" + OemTraceabilityPermissions.APPROVAL_MANAGE + "')")
   public Optional<OemApprovalDto> approveApproval(UUID id, String notes) {
     return approvalRepo.findById(id).map(a -> {
       a.approve(null, notes);
@@ -72,6 +78,7 @@ public class OemTraceabilityAppService {
     });
   }
 
+  @PreAuthorize("hasAuthority('" + OemTraceabilityPermissions.APPROVAL_MANAGE + "')")
   public Optional<OemApprovalDto> rejectApproval(UUID id, String notes) {
     return approvalRepo.findById(id).map(a -> {
       a.reject(null, notes);
@@ -79,6 +86,7 @@ public class OemTraceabilityAppService {
     });
   }
 
+  @PreAuthorize("hasAuthority('" + OemTraceabilityPermissions.APPROVAL_MANAGE + "')")
   public Optional<OemApprovalDto> cancelApproval(UUID id, String reason) {
     return approvalRepo.findById(id).map(a -> {
       a.cancel(null, reason);
@@ -86,17 +94,17 @@ public class OemTraceabilityAppService {
     });
   }
 
+  @PreAuthorize("hasAuthority('" + OemTraceabilityPermissions.APPROVAL_MANAGE + "')")
   public boolean deleteApproval(UUID id) {
-    return approvalRepo.findById(id).map(a -> {
-      a.softDelete(null);
-      approvalRepo.save(a);
-      return true;
-    }).orElse(false);
+    if (!approvalRepo.existsById(id)) return false;
+    approvalRepo.deleteById(id);
+    return true;
   }
 
   // --- Customizations ---
 
   @Transactional(readOnly = true)
+  @PreAuthorize("hasAuthority('" + OemTraceabilityPermissions.CUSTOMIZATION_DEFAULT + "')")
   public List<OemCustomizationDto> getCustomizations(String oemCode, String status) {
     List<OemCustomization> results;
     if (status != null && !status.isBlank()) {
@@ -114,10 +122,12 @@ public class OemTraceabilityAppService {
   }
 
   @Transactional(readOnly = true)
+  @PreAuthorize("hasAuthority('" + OemTraceabilityPermissions.CUSTOMIZATION_DEFAULT + "')")
   public Optional<OemCustomizationDto> getCustomizationById(UUID id) {
     return customizationRepo.findById(id).map(this::toCustomizationDto);
   }
 
+  @PreAuthorize("hasAuthority('" + OemTraceabilityPermissions.CUSTOMIZATION_CREATE + "')")
   public OemCustomizationDto createCustomization(CreateOemCustomizationDto input) {
     var c = new OemCustomization(UUID.randomUUID(), input.entityId(), input.entityType(),
         input.oemCode(), input.type());
@@ -127,6 +137,7 @@ public class OemTraceabilityAppService {
     return toCustomizationDto(customizationRepo.save(c));
   }
 
+  @PreAuthorize("hasAuthority('" + OemTraceabilityPermissions.CUSTOMIZATION_MANAGE + "')")
   public Optional<OemCustomizationDto> submitCustomization(UUID id) {
     return customizationRepo.findById(id).map(c -> {
       c.submitForApproval();
@@ -134,6 +145,7 @@ public class OemTraceabilityAppService {
     });
   }
 
+  @PreAuthorize("hasAuthority('" + OemTraceabilityPermissions.CUSTOMIZATION_MANAGE + "')")
   public Optional<OemCustomizationDto> approveCustomization(UUID id, String notes) {
     return customizationRepo.findById(id).map(c -> {
       c.approve(null, notes);
@@ -141,6 +153,7 @@ public class OemTraceabilityAppService {
     });
   }
 
+  @PreAuthorize("hasAuthority('" + OemTraceabilityPermissions.CUSTOMIZATION_MANAGE + "')")
   public Optional<OemCustomizationDto> rejectCustomization(UUID id, String notes) {
     return customizationRepo.findById(id).map(c -> {
       c.reject(null, notes);
@@ -148,12 +161,11 @@ public class OemTraceabilityAppService {
     });
   }
 
+  @PreAuthorize("hasAuthority('" + OemTraceabilityPermissions.CUSTOMIZATION_MANAGE + "')")
   public boolean deleteCustomization(UUID id) {
-    return customizationRepo.findById(id).map(c -> {
-      c.softDelete(null);
-      customizationRepo.save(c);
-      return true;
-    }).orElse(false);
+    if (!customizationRepo.existsById(id)) return false;
+    customizationRepo.deleteById(id);
+    return true;
   }
 
   // --- Mappers ---

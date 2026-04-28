@@ -8,6 +8,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.util.UUID;
 import org.hibernate.annotations.Filter;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
 /**
  * Organization unit (hierarchical) — matching ABP's {@code OrganizationUnit}.
@@ -18,6 +20,8 @@ import org.hibernate.annotations.Filter;
 @Entity
 @Table(name = "organization_units")
 @Filter(name = "tenantFilter", condition = "tenant_id = UNHEX(REPLACE(:tenantId, '-', ''))")
+@SQLDelete(sql = "UPDATE organization_units SET is_deleted = true, deleted_at = CURRENT_TIMESTAMP(6) WHERE id = ?")
+@SQLRestriction("is_deleted = false")
 public class OrganizationUnit extends FullAuditedEntity<UUID> implements MultiTenant {
 
   @Id

@@ -7,6 +7,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.util.UUID;
 import org.hibernate.annotations.Filter;
+import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
 /**
@@ -18,6 +19,7 @@ import org.hibernate.annotations.SQLRestriction;
 @Entity
 @Table(name = "detection_templates")
 @Filter(name = "tenantFilter", condition = "tenant_id = UNHEX(REPLACE(:tenantId, '-', ''))")
+@SQLDelete(sql = "UPDATE detection_templates SET is_deleted = true, deleted_at = CURRENT_TIMESTAMP(6) WHERE id = ?")
 @SQLRestriction("is_deleted = false")
 public class DetectionTemplate extends FullAuditedEntity<UUID> {
 

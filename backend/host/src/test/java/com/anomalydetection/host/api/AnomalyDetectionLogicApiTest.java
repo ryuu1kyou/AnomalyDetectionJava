@@ -21,6 +21,7 @@ import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.request.RequestPostProcessor;
 
 @SpringBootTest(classes = AnomalyDetectionApplication.class)
 @AutoConfigureMockMvc
@@ -40,6 +41,15 @@ class AnomalyDetectionLogicApiTest {
 
   private static SimpleGrantedAuthority auth(String perm) {
     return new SimpleGrantedAuthority(perm);
+  }
+
+  private static RequestPostProcessor logicJwt() {
+    return jwt().authorities(
+        auth("AnomalyDetection.Logic.Default"),
+        auth("AnomalyDetection.Logic.Create"),
+        auth("AnomalyDetection.Logic.Edit"),
+        auth("AnomalyDetection.Logic.Delete"),
+        auth("AnomalyDetection.Logic.Approve"));
   }
 
   private static final String CREATE_BODY = """
@@ -74,7 +84,7 @@ class AnomalyDetectionLogicApiTest {
   void createLogicStartsAsDraft() throws Exception {
     mockMvc
         .perform(post(BASE).contentType(MediaType.APPLICATION_JSON).content(CREATE_BODY)
-            .with(jwt()))
+            .with(logicJwt()))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.name").value("BrakePressureTimeout"))
         .andExpect(jsonPath("$.status").value("DRAFT"))
@@ -85,14 +95,14 @@ class AnomalyDetectionLogicApiTest {
   void submitForApprovalTransitionsToPending() throws Exception {
     MvcResult createResult = mockMvc
         .perform(post(BASE).contentType(MediaType.APPLICATION_JSON).content(CREATE_BODY)
-            .with(jwt()))
+            .with(logicJwt()))
         .andExpect(status().isOk())
         .andReturn();
 
     String id = objectMapper.readTree(createResult.getResponse().getContentAsString()).get("id").asText();
 
     mockMvc
-        .perform(post(BASE + "/" + id + "/submit-for-approval").with(jwt()))
+        .perform(post(BASE + "/" + id + "/submit-for-approval").with(logicJwt()))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.status").value("PENDING_APPROVAL"));
   }
@@ -101,19 +111,19 @@ class AnomalyDetectionLogicApiTest {
   void approveWorkflow() throws Exception {
     MvcResult createResult = mockMvc
         .perform(post(BASE).contentType(MediaType.APPLICATION_JSON).content(CREATE_BODY)
-            .with(jwt()))
+            .with(logicJwt()))
         .andExpect(status().isOk())
         .andReturn();
 
     String id = objectMapper.readTree(createResult.getResponse().getContentAsString()).get("id").asText();
 
-    mockMvc.perform(post(BASE + "/" + id + "/submit-for-approval").with(jwt()))
+    mockMvc.perform(post(BASE + "/" + id + "/submit-for-approval").with(logicJwt()))
         .andExpect(status().isOk());
 
     mockMvc
         .perform(post(BASE + "/" + id + "/approve")
             .param("notes", "Reviewed and approved")
-            .with(jwt()))
+            .with(logicJwt()))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.status").value("APPROVED"))
         .andExpect(jsonPath("$.approvalNotes").value("Reviewed and approved"));
@@ -123,19 +133,19 @@ class AnomalyDetectionLogicApiTest {
   void rejectWorkflow() throws Exception {
     MvcResult createResult = mockMvc
         .perform(post(BASE).contentType(MediaType.APPLICATION_JSON).content(CREATE_BODY)
-            .with(jwt()))
+            .with(logicJwt()))
         .andExpect(status().isOk())
         .andReturn();
 
     String id = objectMapper.readTree(createResult.getResponse().getContentAsString()).get("id").asText();
 
-    mockMvc.perform(post(BASE + "/" + id + "/submit-for-approval").with(jwt()))
+    mockMvc.perform(post(BASE + "/" + id + "/submit-for-approval").with(logicJwt()))
         .andExpect(status().isOk());
 
     mockMvc
         .perform(post(BASE + "/" + id + "/reject")
             .param("reason", "Missing test evidence")
-            .with(jwt()))
+            .with(logicJwt()))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.status").value("REJECTED"));
   }
@@ -144,11 +154,11 @@ class AnomalyDetectionLogicApiTest {
   void filterByStatus() throws Exception {
     mockMvc
         .perform(post(BASE).contentType(MediaType.APPLICATION_JSON).content(CREATE_BODY)
-            .with(jwt()))
+            .with(logicJwt()))
         .andExpect(status().isOk());
 
     mockMvc
-        .perform(get(BASE).param("status", "DRAFT").with(jwt()))
+        .perform(get(BASE).param("status", "DRAFT").with(logicJwt()))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$").isArray());
   }

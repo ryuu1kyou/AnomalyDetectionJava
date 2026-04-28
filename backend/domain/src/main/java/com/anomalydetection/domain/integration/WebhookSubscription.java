@@ -7,10 +7,12 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.Instant;
 import java.util.UUID;
+import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
 @Entity
 @Table(name = "webhook_subscriptions")
+@SQLDelete(sql = "UPDATE webhook_subscriptions SET is_deleted = true, deleted_at = CURRENT_TIMESTAMP(6) WHERE id = ?")
 @SQLRestriction("is_deleted = false")
 public class WebhookSubscription extends FullAuditedEntity<UUID> {
 

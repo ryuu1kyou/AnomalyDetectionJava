@@ -1,5 +1,6 @@
 package com.anomalydetection.application.knowledgebase;
 
+import com.anomalydetection.contracts.knowledgebase.KnowledgeBasePermissions;
 import com.anomalydetection.contracts.knowledgebase.CreateKnowledgeArticleCommentDto;
 import com.anomalydetection.contracts.knowledgebase.CreateKnowledgeArticleDto;
 import com.anomalydetection.contracts.knowledgebase.GetKnowledgeArticlesInput;
@@ -16,6 +17,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,6 +39,7 @@ public class KnowledgeBaseAppService {
   }
 
   @Transactional(readOnly = true)
+  @PreAuthorize("hasAuthority('" + KnowledgeBasePermissions.DEFAULT + "')")
   public List<KnowledgeArticleDto> getList(GetKnowledgeArticlesInput input) {
     var all = articleRepo.findAll().stream()
         .filter(a -> {
@@ -67,6 +70,7 @@ public class KnowledgeBaseAppService {
   }
 
   @Transactional(readOnly = true)
+  @PreAuthorize("hasAuthority('" + KnowledgeBasePermissions.DEFAULT + "')")
   public Optional<KnowledgeArticleDto> getById(UUID id) {
     return articleRepo.findById(id).map(a -> {
       a.incrementViewCount();
@@ -75,6 +79,7 @@ public class KnowledgeBaseAppService {
     });
   }
 
+  @PreAuthorize("hasAuthority('" + KnowledgeBasePermissions.CREATE + "')")
   public KnowledgeArticleDto create(CreateKnowledgeArticleDto input) {
     var article = new KnowledgeArticle(UUID.randomUUID(), input.title(), input.content());
     applyInput(article, input.summary(), input.category() != null ? input.category().name() : null,
@@ -86,6 +91,7 @@ public class KnowledgeBaseAppService {
     return toDto(articleRepo.save(article));
   }
 
+  @PreAuthorize("hasAuthority('" + KnowledgeBasePermissions.EDIT + "')")
   public Optional<KnowledgeArticleDto> update(UUID id, UpdateKnowledgeArticleDto input) {
     return articleRepo.findById(id).map(a -> {
       a.setTitle(input.title());
@@ -100,14 +106,14 @@ public class KnowledgeBaseAppService {
     });
   }
 
+  @PreAuthorize("hasAuthority('" + KnowledgeBasePermissions.DELETE + "')")
   public boolean delete(UUID id) {
-    return articleRepo.findById(id).map(a -> {
-      a.softDelete(null);
-      articleRepo.save(a);
-      return true;
-    }).orElse(false);
+    if (!articleRepo.existsById(id)) return false;
+    articleRepo.deleteById(id);
+    return true;
   }
 
+  @PreAuthorize("hasAuthority('" + KnowledgeBasePermissions.PUBLISH + "')")
   public Optional<KnowledgeArticleDto> publish(UUID id) {
     return articleRepo.findById(id).map(a -> {
       a.publish();
@@ -115,6 +121,7 @@ public class KnowledgeBaseAppService {
     });
   }
 
+  @PreAuthorize("hasAuthority('" + KnowledgeBasePermissions.PUBLISH + "')")
   public Optional<KnowledgeArticleDto> unpublish(UUID id) {
     return articleRepo.findById(id).map(a -> {
       a.unpublish();
@@ -122,6 +129,7 @@ public class KnowledgeBaseAppService {
     });
   }
 
+  @PreAuthorize("hasAuthority('" + KnowledgeBasePermissions.DEFAULT + "')")
   public Optional<KnowledgeArticleDto> markAsUseful(UUID id) {
     return articleRepo.findById(id).map(a -> {
       a.incrementUsefulCount();
@@ -129,6 +137,7 @@ public class KnowledgeBaseAppService {
     });
   }
 
+  @PreAuthorize("hasAuthority('" + KnowledgeBasePermissions.DEFAULT + "')")
   public Optional<KnowledgeArticleDto> rate(UUID id, int rating) {
     return articleRepo.findById(id).map(a -> {
       a.applyRating(Math.max(0, Math.min(5, rating)));
@@ -137,6 +146,7 @@ public class KnowledgeBaseAppService {
   }
 
   @Transactional(readOnly = true)
+  @PreAuthorize("hasAuthority('" + KnowledgeBasePermissions.DEFAULT + "')")
   public List<KnowledgeArticleDto> getPopular(int limit) {
     return articleRepo.findAllByIsPublished(true).stream()
         .sorted(Comparator.comparingInt(KnowledgeArticle::getUsefulCount).reversed()
@@ -147,6 +157,7 @@ public class KnowledgeBaseAppService {
   }
 
   @Transactional(readOnly = true)
+  @PreAuthorize("hasAuthority('" + KnowledgeBasePermissions.DEFAULT + "')")
   public List<KnowledgeArticleDto> getRecommendations(
       String detectionLogicId, String canSignalId, String anomalyType, int limit) {
     return articleRepo.findAllByIsPublished(true).stream()
@@ -178,12 +189,14 @@ public class KnowledgeBaseAppService {
   // --- Comments ---
 
   @Transactional(readOnly = true)
+  @PreAuthorize("hasAuthority('" + KnowledgeBasePermissions.DEFAULT + "')")
   public List<KnowledgeArticleCommentDto> getComments(UUID articleId) {
     return commentRepo.findAllByArticleId(articleId).stream()
         .map(this::toCommentDto)
         .toList();
   }
 
+  @PreAuthorize("hasAuthority('" + KnowledgeBasePermissions.DEFAULT + "')")
   public KnowledgeArticleCommentDto addComment(CreateKnowledgeArticleCommentDto input) {
     var articleId = UUID.fromString(input.articleId());
     var comment = new KnowledgeArticleComment(UUID.randomUUID(), articleId, input.content());
@@ -197,12 +210,11 @@ public class KnowledgeBaseAppService {
     return toCommentDto(saved);
   }
 
+  @PreAuthorize("hasAuthority('" + KnowledgeBasePermissions.DELETE + "')")
   public boolean deleteComment(UUID commentId) {
-    return commentRepo.findById(commentId).map(c -> {
-      c.softDelete(null);
-      commentRepo.save(c);
-      return true;
-    }).orElse(false);
+    if (!commentRepo.existsById(commentId)) return false;
+    commentRepo.deleteById(commentId);
+    return true;
   }
 
   // --- Helpers ---
