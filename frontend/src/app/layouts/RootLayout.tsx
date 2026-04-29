@@ -30,6 +30,7 @@ const MENU_ITEMS = [
       { key: '/safety', label: <Link to="/safety">Safety (ISO 26262)</Link> },
       { key: '/knowledge-base', label: <Link to="/knowledge-base">ナレッジベース</Link> },
       { key: '/oem-traceability', label: <Link to="/oem-traceability">OEM トレーサビリティ</Link> },
+      { key: '/similar-pattern-search', label: <Link to="/similar-pattern-search">類似パターン検索</Link> },
     ],
   },
   {
@@ -67,9 +68,6 @@ export default function RootLayout() {
       >
         <Typography.Text style={{ color: 'white', fontWeight: 600 }}>
           AnomalyDetection
-        </Typography.Text>
-        <Typography.Text style={{ color: 'rgba(255,255,255,0.65)' }}>
-          Java port UI
         </Typography.Text>
       </Header>
 

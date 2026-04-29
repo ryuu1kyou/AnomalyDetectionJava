@@ -95,7 +95,11 @@
       "Bash(grep -v \"//\")",
       "Bash(xargs head *)",
       "Bash(xargs -I{} sh -c 'echo \"=== {} ===\"; cat {}')",
-      "Bash(xargs -I {} ls -la {}/)"
+      "Bash(xargs -I {} ls -la {}/)",
+      "Bash(mvn -pl host spring-boot:run -q)",
+      "Bash(echo \"Backend PID: $!\")",
+      "Bash(echo \"Frontend PID: $!\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8080/actuator/health)"
     ]
   }
 }

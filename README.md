@@ -40,7 +40,7 @@ cd .\backend
 .\mvnw.cmd -f .\pom.xml -pl host -am -DskipTests install
 
 # 2-2) host を起動
-.\mvnw.cmd -f .\host\pom.xml spring-boot:run -Dspring-boot.run.profiles=local
+.\mvnw.cmd -f .\host\pom.xml spring-boot:run "-Dspring-boot.run.profiles=local"
 ```
 
 DB パスワードを `123` 以外にしたい場合は、環境変数で上書きできます。
