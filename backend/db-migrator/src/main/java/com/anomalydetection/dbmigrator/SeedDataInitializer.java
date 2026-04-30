@@ -261,7 +261,7 @@ public class SeedDataInitializer implements ApplicationRunner {
         createCategory("Chassis", "Chassis and suspension signals", 7),
         createCategory("Infotainment", "Infotainment and HMI signals", 8)
     );
-    canSystemCategoryRepository.saveAll(categories);
+    categories.forEach(canSystemCategoryRepository::save);
     log.info("Seeded {} CanSystemCategory master records", categories.size());
   }
 
@@ -299,7 +299,7 @@ public class SeedDataInitializer implements ApplicationRunner {
             "elapsed > timeout",
             null)
     );
-    detectionTemplateRepository.saveAll(templates);
+    templates.forEach(detectionTemplateRepository::save);
     log.info("Seeded {} default DetectionTemplate records", templates.size());
   }
 
