@@ -38,7 +38,7 @@ jobs:
 
       - name: Set up Java 21 (Java scan only)
         if: matrix.language == 'java-kotlin'
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           java-version: '21'
           distribution: 'temurin'
