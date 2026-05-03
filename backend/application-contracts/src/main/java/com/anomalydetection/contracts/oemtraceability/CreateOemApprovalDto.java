@@ -9,4 +9,9 @@ public record CreateOemApprovalDto(
     OemApprovalType type,
     String approvalReason,
     String dueDate,
-    int priority) {}
+    int priority,
+    // Traceability keys
+    String featureId,
+    String decisionId,
+    String applicability,
+    String confidentialityLevel) {}

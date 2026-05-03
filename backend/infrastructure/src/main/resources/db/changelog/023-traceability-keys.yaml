@@ -1,0 +1,101 @@
+databaseChangeLog:
+  - changeSet:
+      id: 023-traceability-keys-safety
+      author: anomaly-detection
+      comment: "Phase A-2/3/4: Add traceability key columns to safety_trace_records"
+      changes:
+        - addColumn:
+            tableName: safety_trace_records
+            columns:
+              - column:
+                  name: feature_id
+                  type: VARCHAR(64)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: decision_id
+                  type: VARCHAR(64)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: change_id
+                  type: VARCHAR(64)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: if_impact
+                  type: VARCHAR(16)
+                  defaultValue: UNCHANGED
+                  constraints:
+                    nullable: true
+              - column:
+                  name: unknown_until
+                  type: DATE
+                  constraints:
+                    nullable: true
+              - column:
+                  name: unknown_owner_id
+                  type: BINARY(16)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: design_rationale
+                  type: LONGTEXT
+                  constraints:
+                    nullable: true
+              - column:
+                  name: assumption
+                  type: LONGTEXT
+                  constraints:
+                    nullable: true
+              - column:
+                  name: constraint_text
+                  type: LONGTEXT
+                  constraints:
+                    nullable: true
+              - column:
+                  name: doc_sync_status
+                  type: VARCHAR(16)
+                  defaultValue: NOT_REQUIRED
+                  constraints:
+                    nullable: true
+              - column:
+                  name: scope
+                  type: VARCHAR(16)
+                  defaultValue: PLATFORM
+                  constraints:
+                    nullable: true
+              - column:
+                  name: applicability
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: true
+
+  - changeSet:
+      id: 023-traceability-keys-oem-approvals
+      author: anomaly-detection
+      comment: "Phase A-2/3/4: Add traceability key columns to oem_approvals"
+      changes:
+        - addColumn:
+            tableName: oem_approvals
+            columns:
+              - column:
+                  name: feature_id
+                  type: VARCHAR(64)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: decision_id
+                  type: VARCHAR(64)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: applicability
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: confidentiality_level
+                  type: VARCHAR(32)
+                  constraints:
+                    nullable: true

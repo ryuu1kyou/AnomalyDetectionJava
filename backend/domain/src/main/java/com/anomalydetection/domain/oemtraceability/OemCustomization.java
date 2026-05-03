@@ -75,10 +75,18 @@ public class OemCustomization extends FullAuditedEntity<UUID> {
   }
 
   public void submitForApproval() {
+    if (status != OemCustomizationStatus.DRAFT) {
+      throw new IllegalStateException(
+          "Only DRAFT customizations can be submitted for approval, current status: " + status);
+    }
     this.status = OemCustomizationStatus.PENDING_APPROVAL;
   }
 
   public void approve(UUID approvedBy, String notes) {
+    if (status != OemCustomizationStatus.PENDING_APPROVAL) {
+      throw new IllegalStateException(
+          "Only PENDING_APPROVAL customizations can be approved, current status: " + status);
+    }
     this.status = OemCustomizationStatus.APPROVED;
     this.approvedBy = approvedBy;
     this.approvedAt = Instant.now();
@@ -86,6 +94,10 @@ public class OemCustomization extends FullAuditedEntity<UUID> {
   }
 
   public void reject(UUID rejectedBy, String notes) {
+    if (status != OemCustomizationStatus.PENDING_APPROVAL) {
+      throw new IllegalStateException(
+          "Only PENDING_APPROVAL customizations can be rejected, current status: " + status);
+    }
     this.status = OemCustomizationStatus.REJECTED;
     this.approvedBy = rejectedBy;
     this.approvedAt = Instant.now();
@@ -93,6 +105,9 @@ public class OemCustomization extends FullAuditedEntity<UUID> {
   }
 
   public void markObsolete() {
+    if (status == OemCustomizationStatus.OBSOLETE) {
+      throw new IllegalStateException("Customization is already OBSOLETE");
+    }
     this.status = OemCustomizationStatus.OBSOLETE;
   }
 

@@ -7,11 +7,13 @@ import com.anomalydetection.contracts.safety.GetSafetyTraceInput;
 import com.anomalydetection.contracts.safety.SafetyTraceLinkDto;
 import com.anomalydetection.contracts.safety.SafetyTraceRecordDto;
 import com.anomalydetection.contracts.safety.UpdateSafetyTraceRecordDto;
+import com.anomalydetection.domain.safety.IfImpact;
 import com.anomalydetection.domain.safety.SafetyApprovalStatus;
 import com.anomalydetection.domain.safety.SafetyTraceLink;
 import com.anomalydetection.domain.safety.SafetyTraceLinkRepository;
 import com.anomalydetection.domain.safety.SafetyTraceRecord;
 import com.anomalydetection.domain.safety.SafetyTraceRecordRepository;
+import java.time.LocalDate;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
@@ -83,6 +85,10 @@ public class SafetyTraceAppService {
 
   @PreAuthorize("hasAuthority('" + SafetyTracePermissions.CREATE + "')")
   public SafetyTraceRecordDto create(CreateSafetyTraceRecordDto input) {
+    // TOP1: feature_id is mandatory
+    if (input.featureId() == null || input.featureId().isBlank()) {
+      throw new IllegalArgumentException("feature_id is required for safety trace records");
+    }
     var record = new SafetyTraceRecord(UUID.randomUUID(), input.name(),
         input.asilLevel() != null ? input.asilLevel() : "QM");
     record.setDescription(input.description());
@@ -94,6 +100,10 @@ public class SafetyTraceAppService {
     if (input.projectId() != null)
       record.setProjectId(UUID.fromString(input.projectId()));
     record.setRelatedDocuments(toJson(input.relatedDocuments()));
+    applyTraceabilityFields(record, input.featureId(), input.decisionId(), input.changeId(),
+        input.ifImpact(), input.unknownUntil(), input.unknownOwnerId(),
+        input.designRationale(), input.assumption(), input.constraintText(),
+        input.docSyncStatus(), input.scope(), input.applicability());
     return toDto(recordRepo.save(record));
   }
 
@@ -111,8 +121,18 @@ public class SafetyTraceAppService {
       if (input.projectId() != null)
         r.setProjectId(UUID.fromString(input.projectId()));
       r.setRelatedDocuments(toJson(input.relatedDocuments()));
+      applyTraceabilityFields(r, input.featureId(), input.decisionId(), input.changeId(),
+          input.ifImpact(), input.unknownUntil(), input.unknownOwnerId(),
+          input.designRationale(), input.assumption(), input.constraintText(),
+          input.docSyncStatus(), input.scope(), input.applicability());
       return toDto(recordRepo.save(r));
     });
+  }
+
+  @Transactional(readOnly = true)
+  @PreAuthorize("hasAuthority('" + SafetyTracePermissions.DEFAULT + "')")
+  public List<SafetyTraceRecordDto> findByFeatureId(String featureId) {
+    return recordRepo.findAllByFeatureId(featureId).stream().map(this::toDto).toList();
   }
 
   @PreAuthorize("hasAuthority('" + SafetyTracePermissions.DELETE + "')")
@@ -125,6 +145,12 @@ public class SafetyTraceAppService {
   @PreAuthorize("hasAuthority('" + SafetyTracePermissions.EDIT + "')")
   public Optional<SafetyTraceRecordDto> submit(UUID id) {
     return recordRepo.findById(id).map(r -> {
+      // TOP2/TOP3: UNKNOWN if_impact requires deadline + owner
+      if (r.getIfImpact() == IfImpact.UNKNOWN
+          && (r.getUnknownUntil() == null || r.getUnknownOwnerId() == null)) {
+        throw new IllegalArgumentException(
+            "Cannot submit: if_impact is UNKNOWN but unknown_until or unknown_owner_id is not set");
+      }
       r.submit(null);
       return toDto(recordRepo.save(r));
     });
@@ -195,7 +221,42 @@ public class SafetyTraceAppService {
         r.getSubmittedAt() != null ? r.getSubmittedAt().toString() : null,
         r.getApprovedAt() != null ? r.getApprovedAt().toString() : null,
         r.getApprovalComments(),
-        fromJson(r.getRelatedDocuments()));
+        fromJson(r.getRelatedDocuments()),
+        // Traceability keys
+        r.getFeatureId(),
+        r.getDecisionId(),
+        r.getChangeId(),
+        r.getIfImpact(),
+        r.getUnknownUntil() != null ? r.getUnknownUntil().toString() : null,
+        r.getUnknownOwnerId() != null ? r.getUnknownOwnerId().toString() : null,
+        r.getDesignRationale(),
+        r.getAssumption(),
+        r.getConstraintText(),
+        r.getDocSyncStatus(),
+        r.getScope(),
+        r.getApplicability());
+  }
+
+  private void applyTraceabilityFields(
+      SafetyTraceRecord r,
+      String featureId, String decisionId, String changeId,
+      IfImpact ifImpact, String unknownUntil, String unknownOwnerId,
+      String designRationale, String assumption, String constraintText,
+      com.anomalydetection.domain.safety.DocSyncStatus docSyncStatus,
+      com.anomalydetection.domain.safety.TraceabilityScope scope,
+      String applicability) {
+    if (featureId != null) r.setFeatureId(featureId);
+    if (decisionId != null) r.setDecisionId(decisionId);
+    if (changeId != null) r.setChangeId(changeId);
+    if (ifImpact != null) r.setIfImpact(ifImpact);
+    if (unknownUntil != null) r.setUnknownUntil(LocalDate.parse(unknownUntil));
+    if (unknownOwnerId != null) r.setUnknownOwnerId(UUID.fromString(unknownOwnerId));
+    if (designRationale != null) r.setDesignRationale(designRationale);
+    if (assumption != null) r.setAssumption(assumption);
+    if (constraintText != null) r.setConstraintText(constraintText);
+    if (docSyncStatus != null) r.setDocSyncStatus(docSyncStatus);
+    if (scope != null) r.setScope(scope);
+    if (applicability != null) r.setApplicability(applicability);
   }
 
   private SafetyTraceLinkDto toLinkDto(SafetyTraceLink l) {

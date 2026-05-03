@@ -1,5 +1,9 @@
 # AnomalyDetection (Java 移植版)
 
+[![Backend CI](https://github.com/ryuu1kyou/AnomalyDetectionJava/actions/workflows/backend-ci.yml/badge.svg)](https://github.com/ryuu1kyou/AnomalyDetectionJava/actions/workflows/backend-ci.yml)
+[![Frontend CI](https://github.com/ryuu1kyou/AnomalyDetectionJava/actions/workflows/frontend-ci.yml/badge.svg)](https://github.com/ryuu1kyou/AnomalyDetectionJava/actions/workflows/frontend-ci.yml)
+[![CodeQL](https://github.com/ryuu1kyou/AnomalyDetectionJava/actions/workflows/codeql.yml/badge.svg)](https://github.com/ryuu1kyou/AnomalyDetectionJava/actions/workflows/codeql.yml)
+
 `.NET 10 + ABP vNext 9.3.5` で実装された CAN 異常検出管理システムを
 **Java 21 + Spring Boot 3.3 + React** に完全機能パリティ移植したリポジトリ。
 

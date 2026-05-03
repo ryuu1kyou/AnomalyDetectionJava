@@ -172,6 +172,7 @@ application ──→ infrastructure ──→ host
 | **M5** (フロントエンド基盤) | **完了** (Zustand 5 / TanStack Query 5 / react-oidc-context 3 / Zod 3 / React Hook Form 7 / openapi-fetch 追加済。AuthProvider・QueryProvider・stores・api/client・shared/schemas・/callback ルート実装済) |
 | **M6** (フロントエンド機能ページ) | **完了** (CAN信号・検出テンプレート・異常検出ロジック CRUD、インテグレーションエンドポイント一覧、Safety/KnowledgeBase/OemTraceability/CanSignalSpec 完全 CRUD 実装済。TanStack Query + apiFetch パターン統一) |
 | **M7** (システム/性能テスト) | **完了** (91テスト全 PASS。ドメイン単体[19]: CanSignalTest・AnomalyDetectionLogicStatusTransitionTest・SimilarPatternSearchServiceTest / アプリサービス単体[12]: CanSignalAppServiceTest・AnomalyDetectionLogicAppServiceTest / API 統合[60]: CanSignalApiTest・DetectionTemplateApiTest・AnomalyDetectionLogicApiTest・SoftDeleteApiTest・ProjectsApiTest(6) 他。MapStruct @Mapper 導入・テストモジュール分散配置・Vitest+RTL+MSW フロントエンドテスト基盤・AuditLog HTTP ステータス捕捉・全ドメイン権限シード・i18n メッセージ拡充) |
+| **M8** (automotive-safety トレーサビリティ強化 + CI/CD) | **完了** (Phase A: Safety/OemApproval/OemCustomization に状態遷移ガード・トレサビキー `feature_id`/`decision_id`/`if_impact`/`doc_sync_status` 等12列追加・Liquibase changeset 023・統合テスト8本。Phase B: `feature_id` 横断検索 API `GET /api/app/traceability/feature/{featureId}` + 統合テスト2本。Phase C-1: フロントエンド `usePermissions` / `RequirePermission` / メニュー権限フィルタ + ルート保護。Phase C-2: Safety 詳細 Drawer・OEM 突合 Drawer・トレサビバッジ。Phase D: GitHub Actions `backend-ci`/`frontend-ci`/`codeql`・Dependabot・PR Template) |
 
 ### 5.2 設計上の留意事項 (技術的負債候補)
 
@@ -184,7 +185,6 @@ Projects ドメインは本実装済み (JPA Repository + Domain Aggregate + RES
 ### 5.4 将来課題 (今回スコープ外、後続で対応)
 
 - **Docker / docker-compose 構成** (個人開発のため当面はホスト直接実行)
-- **CI/CD パイプライン (GitHub Actions: `mvn verify` / ESLint / ビルド)**
 - **本番デプロイ構成** (Nginx リバースプロキシ、TLS、サービス化、監視)
 - **Redis キャッシュ・S3 BLOB ストレージへの切替**
 - **Kafka / RabbitMQ などの外部メッセージブローカ連携**

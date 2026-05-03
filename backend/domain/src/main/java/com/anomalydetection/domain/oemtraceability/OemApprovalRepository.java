@@ -11,4 +11,6 @@ public interface OemApprovalRepository extends BaseRepository<OemApproval, UUID>
   List<OemApproval> findAllByStatus(OemApprovalStatus status);
 
   List<OemApproval> findAllByEntityIdAndEntityType(String entityId, String entityType);
+
+  List<OemApproval> findAllByFeatureId(String featureId);
 }

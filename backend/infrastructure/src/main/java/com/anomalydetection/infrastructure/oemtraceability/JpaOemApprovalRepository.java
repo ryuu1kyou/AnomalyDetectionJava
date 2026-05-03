@@ -20,4 +20,7 @@ public interface JpaOemApprovalRepository
 
   @Override
   List<OemApproval> findAllByEntityIdAndEntityType(String entityId, String entityType);
+
+  @Override
+  List<OemApproval> findAllByFeatureId(String featureId);
 }

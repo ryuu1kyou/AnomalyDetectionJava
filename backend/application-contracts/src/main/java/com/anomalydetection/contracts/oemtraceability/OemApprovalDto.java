@@ -18,4 +18,9 @@ public record OemApprovalDto(
     String approvalNotes,
     String dueDate,
     int priority,
-    boolean isOverdue) {}
+    boolean isOverdue,
+    // Traceability keys
+    String featureId,
+    String decisionId,
+    String applicability,
+    String confidentialityLevel) {}

@@ -13,4 +13,6 @@ public interface SafetyTraceRecordRepository extends BaseRepository<SafetyTraceR
   List<SafetyTraceRecord> findAllByProjectId(UUID projectId);
 
   List<SafetyTraceRecord> findAllByDetectionLogicId(UUID detectionLogicId);
+
+  List<SafetyTraceRecord> findAllByFeatureId(String featureId);
 }

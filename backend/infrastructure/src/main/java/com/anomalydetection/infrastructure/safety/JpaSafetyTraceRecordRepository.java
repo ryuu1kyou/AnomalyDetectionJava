@@ -23,4 +23,7 @@ public interface JpaSafetyTraceRecordRepository
 
   @Override
   List<SafetyTraceRecord> findAllByDetectionLogicId(UUID detectionLogicId);
+
+  @Override
+  List<SafetyTraceRecord> findAllByFeatureId(String featureId);
 }

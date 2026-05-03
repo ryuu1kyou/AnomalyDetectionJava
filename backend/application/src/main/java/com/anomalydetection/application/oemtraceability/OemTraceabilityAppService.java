@@ -67,6 +67,11 @@ public class OemTraceabilityAppService {
     approval.setPriority(input.priority());
     if (input.dueDate() != null && !input.dueDate().isBlank())
       approval.setDueDate(Instant.parse(input.dueDate()));
+    // Traceability keys
+    if (input.featureId() != null) approval.setFeatureId(input.featureId());
+    if (input.decisionId() != null) approval.setDecisionId(input.decisionId());
+    if (input.applicability() != null) approval.setApplicability(input.applicability());
+    if (input.confidentialityLevel() != null) approval.setConfidentialityLevel(input.confidentialityLevel());
     return toApprovalDto(approvalRepo.save(approval));
   }
 
@@ -92,6 +97,12 @@ public class OemTraceabilityAppService {
       a.cancel(null, reason);
       return toApprovalDto(approvalRepo.save(a));
     });
+  }
+
+  @Transactional(readOnly = true)
+  @PreAuthorize("hasAuthority('" + OemTraceabilityPermissions.APPROVAL_DEFAULT + "')")
+  public List<OemApprovalDto> findApprovalsByFeatureId(String featureId) {
+    return approvalRepo.findAllByFeatureId(featureId).stream().map(this::toApprovalDto).toList();
   }
 
   @PreAuthorize("hasAuthority('" + OemTraceabilityPermissions.APPROVAL_MANAGE + "')")
@@ -186,7 +197,12 @@ public class OemTraceabilityAppService {
         a.getApprovalNotes(),
         a.getDueDate() != null ? a.getDueDate().toString() : null,
         a.getPriority(),
-        a.isOverdue());
+        a.isOverdue(),
+        // Traceability keys
+        a.getFeatureId(),
+        a.getDecisionId(),
+        a.getApplicability(),
+        a.getConfidentialityLevel());
   }
 
   private OemCustomizationDto toCustomizationDto(OemCustomization c) {

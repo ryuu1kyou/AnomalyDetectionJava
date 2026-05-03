@@ -71,6 +71,19 @@ public class OemApproval extends FullAuditedEntity<UUID> {
   @Column(nullable = false)
   private int priority;
 
+  // ── Traceability keys (automotive-safety skill) ──────────────────────────
+  @Column(name = "feature_id", length = 64)
+  private String featureId;
+
+  @Column(name = "decision_id", length = 64)
+  private String decisionId;
+
+  @Column(name = "applicability", length = 255)
+  private String applicability;
+
+  @Column(name = "confidentiality_level", length = 32)
+  private String confidentialityLevel;
+
   protected OemApproval() {}
 
   public OemApproval(UUID id, String entityId, String entityType, String oemCode,
@@ -86,6 +99,10 @@ public class OemApproval extends FullAuditedEntity<UUID> {
   }
 
   public void approve(UUID approvedBy, String notes) {
+    if (status != OemApprovalStatus.PENDING) {
+      throw new IllegalStateException(
+          "OemApproval can only be approved from PENDING status, current status: " + status);
+    }
     this.status = OemApprovalStatus.APPROVED;
     this.approvedBy = approvedBy;
     this.approvedAt = Instant.now();
@@ -93,6 +110,10 @@ public class OemApproval extends FullAuditedEntity<UUID> {
   }
 
   public void reject(UUID rejectedBy, String notes) {
+    if (status != OemApprovalStatus.PENDING) {
+      throw new IllegalStateException(
+          "OemApproval can only be rejected from PENDING status, current status: " + status);
+    }
     this.status = OemApprovalStatus.REJECTED;
     this.approvedBy = rejectedBy;
     this.approvedAt = Instant.now();
@@ -100,6 +121,11 @@ public class OemApproval extends FullAuditedEntity<UUID> {
   }
 
   public void cancel(UUID cancelledBy, String reason) {
+    if (status == OemApprovalStatus.APPROVED || status == OemApprovalStatus.REJECTED
+        || status == OemApprovalStatus.CANCELLED) {
+      throw new IllegalStateException(
+          "OemApproval cannot be cancelled from status: " + status);
+    }
     this.status = OemApprovalStatus.CANCELLED;
     this.approvalNotes = reason;
   }
@@ -142,4 +168,19 @@ public class OemApproval extends FullAuditedEntity<UUID> {
 
   public int getPriority() { return priority; }
   public void setPriority(int priority) { this.priority = Math.max(1, Math.min(4, priority)); }
+
+  // ── Traceability key accessors ────────────────────────────────────────────
+  public String getFeatureId() { return featureId; }
+  public void setFeatureId(String featureId) { this.featureId = featureId; }
+
+  public String getDecisionId() { return decisionId; }
+  public void setDecisionId(String decisionId) { this.decisionId = decisionId; }
+
+  public String getApplicability() { return applicability; }
+  public void setApplicability(String applicability) { this.applicability = applicability; }
+
+  public String getConfidentialityLevel() { return confidentialityLevel; }
+  public void setConfidentialityLevel(String confidentialityLevel) {
+    this.confidentialityLevel = confidentialityLevel;
+  }
 }

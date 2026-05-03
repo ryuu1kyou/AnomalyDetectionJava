@@ -19,6 +19,18 @@ import AuditLogPage from '../../modules/auditlog/AuditLogPage'
 import SettingsPage from '../../modules/settings/SettingsPage'
 import FeaturesPage from '../../modules/features/FeaturesPage'
 import PermissionsPage from '../../modules/permissions/PermissionsPage'
+import { RequirePermission } from '../../shared/auth/RequirePermission'
+import {
+  CanSignalPermissions,
+  AnomalyDetectionPermissions,
+  DetectionTemplatePermissions,
+  ProjectPermissions,
+  SafetyTracePermissions,
+  KnowledgeBasePermissions,
+  OemTraceabilityPermissions,
+  SimilarPatternSearchPermissions,
+  IntegrationPermissions,
+} from '../../shared/auth/permissions'
 
 export const router = createBrowserRouter([
   {
@@ -31,22 +43,22 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <HomePage /> },
       // Core domain
-      { path: 'can-signals', element: <CanSignalListPage /> },
-      { path: 'can-signal-specs', element: <CanSignalSpecPage /> },
-      { path: 'detection-templates', element: <DetectionTemplateListPage /> },
-      { path: 'anomaly-detection', element: <AnomalyDetectionListPage /> },
+      { path: 'can-signals', element: <RequirePermission permission={CanSignalPermissions.DEFAULT}><CanSignalListPage /></RequirePermission> },
+      { path: 'can-signal-specs', element: <RequirePermission permission={CanSignalPermissions.DEFAULT}><CanSignalSpecPage /></RequirePermission> },
+      { path: 'detection-templates', element: <RequirePermission permission={DetectionTemplatePermissions.DEFAULT}><DetectionTemplateListPage /></RequirePermission> },
+      { path: 'anomaly-detection', element: <RequirePermission permission={AnomalyDetectionPermissions.LOGIC_DEFAULT}><AnomalyDetectionListPage /></RequirePermission> },
       // Projects
-      { path: 'projects', element: <ProjectsPage /> },
-      { path: 'projects/list', element: <ProjectListPage /> },
-      { path: 'projects/:projectId', element: <ProjectDetailPage /> },
+      { path: 'projects', element: <RequirePermission permission={ProjectPermissions.DEFAULT}><ProjectsPage /></RequirePermission> },
+      { path: 'projects/list', element: <RequirePermission permission={ProjectPermissions.DEFAULT}><ProjectListPage /></RequirePermission> },
+      { path: 'projects/:projectId', element: <RequirePermission permission={ProjectPermissions.DEFAULT}><ProjectDetailPage /></RequirePermission> },
       // Quality / Safety
-      { path: 'safety', element: <SafetyPage /> },
-      { path: 'knowledge-base', element: <KnowledgeBasePage /> },
-      { path: 'oem-traceability', element: <OemTraceabilityPage /> },
-      { path: 'similar-pattern-search', element: <SimilarPatternSearchPage /> },
+      { path: 'safety', element: <RequirePermission permission={SafetyTracePermissions.DEFAULT}><SafetyPage /></RequirePermission> },
+      { path: 'knowledge-base', element: <RequirePermission permission={KnowledgeBasePermissions.DEFAULT}><KnowledgeBasePage /></RequirePermission> },
+      { path: 'oem-traceability', element: <RequirePermission permission={OemTraceabilityPermissions.APPROVAL_DEFAULT}><OemTraceabilityPage /></RequirePermission> },
+      { path: 'similar-pattern-search', element: <RequirePermission permission={SimilarPatternSearchPermissions.DEFAULT}><SimilarPatternSearchPage /></RequirePermission> },
       // Integration
-      { path: 'integration', element: <IntegrationListPage /> },
-      // Administration (M3)
+      { path: 'integration', element: <RequirePermission permission={IntegrationPermissions.DEFAULT}><IntegrationListPage /></RequirePermission> },
+      // Administration (M3) — authenticated only
       { path: 'audit-log', element: <AuditLogPage /> },
       { path: 'settings', element: <SettingsPage /> },
       { path: 'features', element: <FeaturesPage /> },

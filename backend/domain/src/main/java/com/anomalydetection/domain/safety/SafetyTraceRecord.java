@@ -8,6 +8,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.UUID;
 import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.SQLDelete;
@@ -88,6 +89,46 @@ public class SafetyTraceRecord extends FullAuditedEntity<UUID> {
   @Column(name = "change_requests", columnDefinition = "LONGTEXT")
   private String changeRequests;
 
+  // ── Traceability keys (automotive-safety skill) ──────────────────────────
+  @Column(name = "feature_id", length = 64)
+  private String featureId;
+
+  @Column(name = "decision_id", length = 64)
+  private String decisionId;
+
+  @Column(name = "change_id", length = 64)
+  private String changeId;
+
+  @Enumerated(EnumType.STRING)
+  @Column(name = "if_impact", length = 16)
+  private IfImpact ifImpact;
+
+  @Column(name = "unknown_until")
+  private LocalDate unknownUntil;
+
+  @Column(name = "unknown_owner_id", columnDefinition = "BINARY(16)")
+  private UUID unknownOwnerId;
+
+  @Column(name = "design_rationale", columnDefinition = "LONGTEXT")
+  private String designRationale;
+
+  @Column(name = "assumption", columnDefinition = "LONGTEXT")
+  private String assumption;
+
+  @Column(name = "constraint_text", columnDefinition = "LONGTEXT")
+  private String constraintText;
+
+  @Enumerated(EnumType.STRING)
+  @Column(name = "doc_sync_status", length = 16)
+  private DocSyncStatus docSyncStatus;
+
+  @Enumerated(EnumType.STRING)
+  @Column(name = "scope", length = 16)
+  private TraceabilityScope scope;
+
+  @Column(name = "applicability", length = 255)
+  private String applicability;
+
   protected SafetyTraceRecord() {}
 
   public SafetyTraceRecord(UUID id, String name, String asilLevel) {
@@ -96,19 +137,35 @@ public class SafetyTraceRecord extends FullAuditedEntity<UUID> {
     this.asilLevel = asilLevel;
     this.approvalStatus = SafetyApprovalStatus.DRAFT;
     this.version = "1.0";
+    this.ifImpact = IfImpact.UNCHANGED;
+    this.docSyncStatus = DocSyncStatus.NOT_REQUIRED;
+    this.scope = TraceabilityScope.PLATFORM;
   }
 
   public void submit(UUID byUserId) {
+    if (approvalStatus != SafetyApprovalStatus.DRAFT) {
+      throw new IllegalStateException(
+          "Only DRAFT records can be submitted, current status: " + approvalStatus);
+    }
     this.approvalStatus = SafetyApprovalStatus.SUBMITTED;
     this.submittedAt = Instant.now();
     this.submittedBy = byUserId;
   }
 
   public void startReview() {
+    if (approvalStatus != SafetyApprovalStatus.SUBMITTED) {
+      throw new IllegalStateException(
+          "Only SUBMITTED records can start review, current status: " + approvalStatus);
+    }
     this.approvalStatus = SafetyApprovalStatus.UNDER_REVIEW;
   }
 
   public void approve(UUID byUserId, String comments) {
+    if (approvalStatus != SafetyApprovalStatus.SUBMITTED
+        && approvalStatus != SafetyApprovalStatus.UNDER_REVIEW) {
+      throw new IllegalStateException(
+          "Only SUBMITTED or UNDER_REVIEW records can be approved, current status: " + approvalStatus);
+    }
     this.approvalStatus = SafetyApprovalStatus.APPROVED;
     this.approvedAt = Instant.now();
     this.approvedBy = byUserId;
@@ -116,6 +173,11 @@ public class SafetyTraceRecord extends FullAuditedEntity<UUID> {
   }
 
   public void reject(UUID byUserId, String comments) {
+    if (approvalStatus != SafetyApprovalStatus.SUBMITTED
+        && approvalStatus != SafetyApprovalStatus.UNDER_REVIEW) {
+      throw new IllegalStateException(
+          "Only SUBMITTED or UNDER_REVIEW records can be rejected, current status: " + approvalStatus);
+    }
     this.approvalStatus = SafetyApprovalStatus.REJECTED;
     this.approvedAt = Instant.now();
     this.approvedBy = byUserId;
@@ -184,4 +246,41 @@ public class SafetyTraceRecord extends FullAuditedEntity<UUID> {
 
   public String getChangeRequests() { return changeRequests; }
   public void setChangeRequests(String changeRequests) { this.changeRequests = changeRequests; }
+
+  // ── Traceability key accessors ────────────────────────────────────────────
+  public String getFeatureId() { return featureId; }
+  public void setFeatureId(String featureId) { this.featureId = featureId; }
+
+  public String getDecisionId() { return decisionId; }
+  public void setDecisionId(String decisionId) { this.decisionId = decisionId; }
+
+  public String getChangeId() { return changeId; }
+  public void setChangeId(String changeId) { this.changeId = changeId; }
+
+  public IfImpact getIfImpact() { return ifImpact; }
+  public void setIfImpact(IfImpact ifImpact) { this.ifImpact = ifImpact; }
+
+  public LocalDate getUnknownUntil() { return unknownUntil; }
+  public void setUnknownUntil(LocalDate unknownUntil) { this.unknownUntil = unknownUntil; }
+
+  public UUID getUnknownOwnerId() { return unknownOwnerId; }
+  public void setUnknownOwnerId(UUID unknownOwnerId) { this.unknownOwnerId = unknownOwnerId; }
+
+  public String getDesignRationale() { return designRationale; }
+  public void setDesignRationale(String designRationale) { this.designRationale = designRationale; }
+
+  public String getAssumption() { return assumption; }
+  public void setAssumption(String assumption) { this.assumption = assumption; }
+
+  public String getConstraintText() { return constraintText; }
+  public void setConstraintText(String constraintText) { this.constraintText = constraintText; }
+
+  public DocSyncStatus getDocSyncStatus() { return docSyncStatus; }
+  public void setDocSyncStatus(DocSyncStatus docSyncStatus) { this.docSyncStatus = docSyncStatus; }
+
+  public TraceabilityScope getScope() { return scope; }
+  public void setScope(TraceabilityScope scope) { this.scope = scope; }
+
+  public String getApplicability() { return applicability; }
+  public void setApplicability(String applicability) { this.applicability = applicability; }
 }
