@@ -21,15 +21,16 @@ import FeaturesPage from '../../modules/features/FeaturesPage'
 import PermissionsPage from '../../modules/permissions/PermissionsPage'
 import { RequirePermission } from '../../shared/auth/RequirePermission'
 import {
-  CanSignalPermissions,
+  AdminPermissions,
   AnomalyDetectionPermissions,
+  CanSignalPermissions,
   DetectionTemplatePermissions,
-  ProjectPermissions,
-  SafetyTracePermissions,
+  IntegrationPermissions,
   KnowledgeBasePermissions,
   OemTraceabilityPermissions,
+  ProjectPermissions,
+  SafetyTracePermissions,
   SimilarPatternSearchPermissions,
-  IntegrationPermissions,
 } from '../../shared/auth/permissions'
 
 export const router = createBrowserRouter([
@@ -58,11 +59,11 @@ export const router = createBrowserRouter([
       { path: 'similar-pattern-search', element: <RequirePermission permission={SimilarPatternSearchPermissions.DEFAULT}><SimilarPatternSearchPage /></RequirePermission> },
       // Integration
       { path: 'integration', element: <RequirePermission permission={IntegrationPermissions.DEFAULT}><IntegrationListPage /></RequirePermission> },
-      // Administration (M3) — authenticated only
-      { path: 'audit-log', element: <AuditLogPage /> },
-      { path: 'settings', element: <SettingsPage /> },
-      { path: 'features', element: <FeaturesPage /> },
-      { path: 'permissions', element: <PermissionsPage /> },
+      // Administration — requires identity admin permissions
+      { path: 'audit-log', element: <RequirePermission permission={AdminPermissions.AUDIT_LOG}><AuditLogPage /></RequirePermission> },
+      { path: 'settings', element: <RequirePermission permission={AdminPermissions.SETTINGS}><SettingsPage /></RequirePermission> },
+      { path: 'features', element: <RequirePermission permission={AdminPermissions.FEATURES}><FeaturesPage /></RequirePermission> },
+      { path: 'permissions', element: <RequirePermission permission={AdminPermissions.PERMISSIONS}><PermissionsPage /></RequirePermission> },
     ],
   },
 ])

@@ -7,8 +7,10 @@ import com.anomalydetection.contracts.safety.GetSafetyTraceInput;
 import com.anomalydetection.contracts.safety.SafetyTraceLinkDto;
 import com.anomalydetection.contracts.safety.SafetyTraceRecordDto;
 import com.anomalydetection.contracts.safety.UpdateSafetyTraceRecordDto;
-import com.anomalydetection.domain.safety.IfImpact;
 import com.anomalydetection.domain.safety.SafetyApprovalStatus;
+import com.anomalydetection.shared.safety.DocSyncStatus;
+import com.anomalydetection.shared.safety.IfImpact;
+import com.anomalydetection.shared.safety.TraceabilityScope;
 import com.anomalydetection.domain.safety.SafetyTraceLink;
 import com.anomalydetection.domain.safety.SafetyTraceLinkRepository;
 import com.anomalydetection.domain.safety.SafetyTraceRecord;
@@ -85,12 +87,9 @@ public class SafetyTraceAppService {
 
   @PreAuthorize("hasAuthority('" + SafetyTracePermissions.CREATE + "')")
   public SafetyTraceRecordDto create(CreateSafetyTraceRecordDto input) {
-    // TOP1: feature_id is mandatory
-    if (input.featureId() == null || input.featureId().isBlank()) {
-      throw new IllegalArgumentException("feature_id is required for safety trace records");
-    }
     var record = new SafetyTraceRecord(UUID.randomUUID(), input.name(),
-        input.asilLevel() != null ? input.asilLevel() : "QM");
+        input.asilLevel() != null ? input.asilLevel() : "QM",
+        input.featureId());
     record.setDescription(input.description());
     record.setRequirementId(input.requirementId());
     record.setSafetyGoalId(input.safetyGoalId());
@@ -145,12 +144,6 @@ public class SafetyTraceAppService {
   @PreAuthorize("hasAuthority('" + SafetyTracePermissions.EDIT + "')")
   public Optional<SafetyTraceRecordDto> submit(UUID id) {
     return recordRepo.findById(id).map(r -> {
-      // TOP2/TOP3: UNKNOWN if_impact requires deadline + owner
-      if (r.getIfImpact() == IfImpact.UNKNOWN
-          && (r.getUnknownUntil() == null || r.getUnknownOwnerId() == null)) {
-        throw new IllegalArgumentException(
-            "Cannot submit: if_impact is UNKNOWN but unknown_until or unknown_owner_id is not set");
-      }
       r.submit(null);
       return toDto(recordRepo.save(r));
     });
@@ -220,6 +213,7 @@ public class SafetyTraceAppService {
         r.getApprovalStatus(),
         r.getSubmittedAt() != null ? r.getSubmittedAt().toString() : null,
         r.getApprovedAt() != null ? r.getApprovedAt().toString() : null,
+        r.getRejectedAt() != null ? r.getRejectedAt().toString() : null,
         r.getApprovalComments(),
         fromJson(r.getRelatedDocuments()),
         // Traceability keys
@@ -242,8 +236,8 @@ public class SafetyTraceAppService {
       String featureId, String decisionId, String changeId,
       IfImpact ifImpact, String unknownUntil, String unknownOwnerId,
       String designRationale, String assumption, String constraintText,
-      com.anomalydetection.domain.safety.DocSyncStatus docSyncStatus,
-      com.anomalydetection.domain.safety.TraceabilityScope scope,
+      DocSyncStatus docSyncStatus,
+      TraceabilityScope scope,
       String applicability) {
     if (featureId != null) r.setFeatureId(featureId);
     if (decisionId != null) r.setDecisionId(decisionId);

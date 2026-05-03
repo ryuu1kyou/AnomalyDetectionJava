@@ -47,3 +47,5 @@ databaseChangeLog:
       file: classpath:db/changelog/022-integration.yaml
   - include:
       file: classpath:db/changelog/023-traceability-keys.yaml
+  - include:
+      file: classpath:db/changelog/024-rejected-fields.yaml

@@ -1,8 +1,8 @@
 package com.anomalydetection.contracts.safety;
 
-import com.anomalydetection.domain.safety.DocSyncStatus;
-import com.anomalydetection.domain.safety.IfImpact;
-import com.anomalydetection.domain.safety.TraceabilityScope;
+import com.anomalydetection.shared.safety.DocSyncStatus;
+import com.anomalydetection.shared.safety.IfImpact;
+import com.anomalydetection.shared.safety.TraceabilityScope;
 import java.util.List;
 
 public record CreateSafetyTraceRecordDto(

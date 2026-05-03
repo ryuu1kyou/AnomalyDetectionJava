@@ -99,7 +99,10 @@
       "Bash(mvn -pl host spring-boot:run -q)",
       "Bash(echo \"Backend PID: $!\")",
       "Bash(echo \"Frontend PID: $!\")",
-      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8080/actuator/health)"
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8080/actuator/health)",
+      "Bash(./mvnw -B verify -q)",
+      "Bash(./mvnw -B verify)",
+      "Bash(./mvnw -B verify -pl host)"
     ]
   }
 }

@@ -105,17 +105,15 @@ const STATUS_COLOR: Record<string, string> = {
 
 const IF_IMPACT_COLOR: Record<string, string> = {
   UNCHANGED: 'green',
-  CHANGED: 'red',
-  NEW_IF: 'blue',
-  DELETED_IF: 'gray',
+  CHANGED: 'blue',
   UNKNOWN: 'orange',
 }
 
 const DOC_SYNC_STATUS_COLOR: Record<string, string> = {
-  SYNCED: 'green',
   NOT_REQUIRED: 'default',
-  OUT_OF_SYNC: 'red',
-  PENDING_REVIEW: 'orange',
+  PENDING: 'orange',
+  UPDATED: 'processing',
+  REVIEWED: 'success',
 }
 
 function useSafetyRecords() {
@@ -170,7 +168,7 @@ const defaultValues: CreateSafetyTraceInput = {
   relatedDocuments: [],
   // Traceability keys
   featureId: '', decisionId: '', changeId: '',
-  ifImpact: 'UNCHANGED', unknownUntil: '', unknownOwnerId: '',
+  ifImpact: 'UNKNOWN', unknownUntil: '', unknownOwnerId: '',
   designRationale: '', docSyncStatus: 'NOT_REQUIRED',
   scope: 'PLATFORM', applicability: '',
 }
@@ -380,10 +378,10 @@ export default function SafetyPage() {
           </Form.Item>
           <Form.Item name="docSyncStatus" label="文書同期状態">
             <Select options={[
-              { value: 'SYNCED', label: 'SYNCED' },
               { value: 'NOT_REQUIRED', label: 'NOT_REQUIRED' },
-              { value: 'OUT_OF_SYNC', label: 'OUT_OF_SYNC' },
-              { value: 'PENDING_REVIEW', label: 'PENDING_REVIEW' },
+              { value: 'PENDING', label: 'PENDING' },
+              { value: 'UPDATED', label: 'UPDATED' },
+              { value: 'REVIEWED', label: 'REVIEWED' },
             ]} />
           </Form.Item>
           <Form.Item name="scope" label="公開範囲 (Scope)">

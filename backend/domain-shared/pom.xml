@@ -13,4 +13,13 @@
   <artifactId>anomaly-detection-domain-shared</artifactId>
   <name>AnomalyDetection :: Domain Shared</name>
   <description>Constants, enums, localization keys, common exceptions (ABP Domain.Shared equivalent)</description>
+
+  <dependencies>
+    <!-- @NamedInterface annotation only — processed at compile/test time, not needed at runtime -->
+    <dependency>
+      <groupId>org.springframework.modulith</groupId>
+      <artifactId>spring-modulith-core</artifactId>
+      <optional>true</optional>
+    </dependency>
+  </dependencies>
 </project>

@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(./mvnw -B test -pl host -Dtest=\"SafetyTraceApiTest#submitBlockedWhenIfImpactUnknownWithoutDeadline\" -Dsurefire.useFile=false)",
+      "Bash(javap -c \"c:/work/tool/net/AnomalyDetectionJava/backend/domain/target/classes/com/anomalydetection/domain/safety/SafetyTraceRecord.class\")",
+      "PowerShell($javaHome = & java -XshowSettings:all -version 2>&1 | Select-String \"java.home\" | ForEach-Object { \\($_ -split \"=\"\\)[1].Trim\\(\\) }; Write-Host \"JAVA_HOME: $javaHome\"; & \"$javaHome\\\\bin\\\\javap.exe\" -c \"c:\\\\work\\\\tool\\\\net\\\\AnomalyDetectionJava\\\\backend\\\\domain\\\\target\\\\classes\\\\com\\\\anomalydetection\\\\domain\\\\safety\\\\SafetyTraceRecord.class\" 2>&1 | Select-String -Pattern \"IllegalArgument|IllegalState\" -Context 0,2 | Select-Object -First 20)",
+      "Read(//c/Users/ryuu1/.m2/repository/com/anomalydetection/anomaly-detection-domain/**)",
+      "Read(//c/Users/ryuu1/.m2/repository/com/anomalydetection/**)",
+      "Bash(unzip -p ~/.m2/repository/com/anomalydetection/anomaly-detection-domain/1.0.0-SNAPSHOT/anomaly-detection-domain-1.0.0-SNAPSHOT.jar \"com/anomalydetection/domain/safety/SafetyTraceRecord.class\")",
+      "Bash(\"C:/Program Files/Java/jdk-21.0.10/bin/javap.exe\" -c /tmp/SafetyTraceRecord_jar.class)",
+      "Bash(\"C:/Program Files/Java/jdk-21.0.10/bin/javap.exe\" -verbose /tmp/SafetyTraceRecord_jar.class)",
+      "Bash(\"C:/Program Files/Java/jdk-21.0.10/bin/javap.exe\" -verbose /tmp/STR.class)",
+      "Bash(unzip -p ~/.m2/repository/com/anomalydetection/anomaly-detection-application/1.0.0-SNAPSHOT/anomaly-detection-application-1.0.0-SNAPSHOT.jar \"com/anomalydetection/application/safety/SafetyTraceAppService.class\")",
+      "Bash(\"C:/Program Files/Java/jdk-21.0.10/bin/javap.exe\" -verbose /tmp/SAS.class)",
+      "Bash(./mvnw -B clean install -DskipTests)",
+      "Bash(./mvnw -B install -DskipTests)",
+      "Bash(Get-ChildItem -Path \"C:\\\\work\\\\tool\\\\net\\\\AnomalyDetection\" -Force)",
+      "Bash(Select-Object Name, PSIsContainer)",
+      "Bash(Format-Table -AutoSize)",
+      "Read(//c/work/tool/net/AnomalyDetection/**)"
+    ],
+    "additionalDirectories": [
+      "\\tmp"
+    ]
+  }
+}

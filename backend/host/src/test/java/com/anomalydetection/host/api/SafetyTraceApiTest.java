@@ -117,11 +117,11 @@ class SafetyTraceApiTest {
 
     String id = objectMapper.readTree(created.getResponse().getContentAsString()).get("id").asText();
 
-    // Submit should be blocked — 400 because deadline+owner are not set
+    // Submit should be blocked — 409 Conflict (domain invariant in SafetyTraceRecord.submit())
     mockMvc
         .perform(post(BASE + "/" + id + "/submit")
             .with(jwt().authorities(auth("SafetyTrace.Records.Edit"))))
-        .andExpect(status().isBadRequest())
+        .andExpect(status().isConflict())
         .andExpect(jsonPath("$.message").value(
             "Cannot submit: if_impact is UNKNOWN but unknown_until or unknown_owner_id is not set"));
   }

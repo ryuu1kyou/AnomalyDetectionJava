@@ -1,6 +1,9 @@
 package com.anomalydetection.domain.safety;
 
 import com.anomalydetection.domain.base.FullAuditedEntity;
+import com.anomalydetection.shared.safety.DocSyncStatus;
+import com.anomalydetection.shared.safety.IfImpact;
+import com.anomalydetection.shared.safety.TraceabilityScope;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -71,6 +74,12 @@ public class SafetyTraceRecord extends FullAuditedEntity<UUID> {
   @Column(name = "approved_by", columnDefinition = "BINARY(16)")
   private UUID approvedBy;
 
+  @Column(name = "rejected_at")
+  private Instant rejectedAt;
+
+  @Column(name = "rejected_by", columnDefinition = "BINARY(16)")
+  private UUID rejectedBy;
+
   @Column(name = "approval_comments", columnDefinition = "LONGTEXT")
   private String approvalComments;
 
@@ -131,13 +140,16 @@ public class SafetyTraceRecord extends FullAuditedEntity<UUID> {
 
   protected SafetyTraceRecord() {}
 
-  public SafetyTraceRecord(UUID id, String name, String asilLevel) {
+  public SafetyTraceRecord(UUID id, String name, String asilLevel, String featureId) {
+    if (featureId == null || featureId.isBlank())
+      throw new IllegalArgumentException("feature_id is required for safety trace records");
     this.id = id;
     this.name = name;
     this.asilLevel = asilLevel;
+    this.featureId = featureId;
     this.approvalStatus = SafetyApprovalStatus.DRAFT;
     this.version = "1.0";
-    this.ifImpact = IfImpact.UNCHANGED;
+    this.ifImpact = IfImpact.UNKNOWN;
     this.docSyncStatus = DocSyncStatus.NOT_REQUIRED;
     this.scope = TraceabilityScope.PLATFORM;
   }
@@ -146,6 +158,11 @@ public class SafetyTraceRecord extends FullAuditedEntity<UUID> {
     if (approvalStatus != SafetyApprovalStatus.DRAFT) {
       throw new IllegalStateException(
           "Only DRAFT records can be submitted, current status: " + approvalStatus);
+    }
+    if (ifImpact == IfImpact.UNKNOWN
+        && (unknownUntil == null || unknownOwnerId == null)) {
+      throw new IllegalStateException(
+          "Cannot submit: if_impact is UNKNOWN but unknown_until or unknown_owner_id is not set");
     }
     this.approvalStatus = SafetyApprovalStatus.SUBMITTED;
     this.submittedAt = Instant.now();
@@ -179,8 +196,8 @@ public class SafetyTraceRecord extends FullAuditedEntity<UUID> {
           "Only SUBMITTED or UNDER_REVIEW records can be rejected, current status: " + approvalStatus);
     }
     this.approvalStatus = SafetyApprovalStatus.REJECTED;
-    this.approvedAt = Instant.now();
-    this.approvedBy = byUserId;
+    this.rejectedAt = Instant.now();
+    this.rejectedBy = byUserId;
     this.approvalComments = comments;
   }
 
@@ -230,6 +247,8 @@ public class SafetyTraceRecord extends FullAuditedEntity<UUID> {
   public UUID getSubmittedBy() { return submittedBy; }
   public Instant getApprovedAt() { return approvedAt; }
   public UUID getApprovedBy() { return approvedBy; }
+  public Instant getRejectedAt() { return rejectedAt; }
+  public UUID getRejectedBy() { return rejectedBy; }
   public String getApprovalComments() { return approvalComments; }
 
   public String getRelatedDocuments() { return relatedDocuments; }

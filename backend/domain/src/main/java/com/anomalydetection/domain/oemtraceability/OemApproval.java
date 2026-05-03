@@ -52,6 +52,12 @@ public class OemApproval extends FullAuditedEntity<UUID> {
   @Column(name = "approved_at")
   private Instant approvedAt;
 
+  @Column(name = "rejected_by", columnDefinition = "BINARY(16)")
+  private UUID rejectedBy;
+
+  @Column(name = "rejected_at")
+  private Instant rejectedAt;
+
   @Enumerated(EnumType.STRING)
   @Column(nullable = false, length = 16)
   private OemApprovalStatus status;
@@ -115,8 +121,8 @@ public class OemApproval extends FullAuditedEntity<UUID> {
           "OemApproval can only be rejected from PENDING status, current status: " + status);
     }
     this.status = OemApprovalStatus.REJECTED;
-    this.approvedBy = rejectedBy;
-    this.approvedAt = Instant.now();
+    this.rejectedBy = rejectedBy;
+    this.rejectedAt = Instant.now();
     this.approvalNotes = notes;
   }
 
@@ -152,6 +158,8 @@ public class OemApproval extends FullAuditedEntity<UUID> {
   public Instant getRequestedAt() { return requestedAt; }
   public UUID getApprovedBy() { return approvedBy; }
   public Instant getApprovedAt() { return approvedAt; }
+  public UUID getRejectedBy() { return rejectedBy; }
+  public Instant getRejectedAt() { return rejectedAt; }
 
   public OemApprovalStatus getStatus() { return status; }
 

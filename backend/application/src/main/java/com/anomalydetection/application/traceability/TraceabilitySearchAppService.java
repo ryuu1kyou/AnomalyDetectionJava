@@ -10,11 +10,17 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Cross-module search service: aggregates Safety records and OEM approvals by feature_id.
+ * Cross-module search: aggregates Safety records and OEM approvals by feature_id.
  * Automotive-safety Phase B — traceability ledger cross-reference.
+ *
+ * NOTE: inner service calls carry their own @PreAuthorize (Spring AOP proxy).
+ * A future refactoring can inject repositories + a shared mapper to unify checks.
  */
 @Service
 @Transactional(readOnly = true)
+@PreAuthorize(
+    "hasAuthority('" + SafetyTracePermissions.DEFAULT + "')"
+    + " and hasAuthority('" + OemTraceabilityPermissions.APPROVAL_DEFAULT + "')")
 public class TraceabilitySearchAppService {
 
   private final SafetyTraceAppService safetyService;
@@ -27,13 +33,6 @@ public class TraceabilitySearchAppService {
     this.oemService = oemService;
   }
 
-  /**
-   * Returns all Safety trace records and OEM approvals that share the given featureId.
-   * Requires SafetyTrace.Records.Default + OemTraceability.Approvals.Default.
-   */
-  @PreAuthorize(
-      "hasAuthority('" + SafetyTracePermissions.DEFAULT + "')"
-      + " and hasAuthority('" + OemTraceabilityPermissions.APPROVAL_DEFAULT + "')")
   public FeatureTraceabilityDto findByFeatureId(String featureId) {
     var safetyRecords = safetyService.findByFeatureId(featureId);
     var oemApprovals = oemService.findApprovalsByFeatureId(featureId);

@@ -1,4 +1,4 @@
-package com.anomalydetection.domain.safety;
+package com.anomalydetection.shared.safety;
 
 /** Document synchronisation status for the 3-ledger model (automotive-safety skill). */
 public enum DocSyncStatus {

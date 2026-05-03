@@ -72,6 +72,13 @@ export const IntegrationPermissions = {
   IMPORT_DATA: 'Integration.ImportData',
 } as const
 
+export const AdminPermissions = {
+  AUDIT_LOG: 'AnomalyDetection.Identity.Users.View',
+  SETTINGS: 'AnomalyDetection.Identity.Users.View',
+  FEATURES: 'AnomalyDetection.Identity.Users.View',
+  PERMISSIONS: 'AnomalyDetection.Identity.Roles.View',
+} as const
+
 export type PermissionString =
   | typeof CanSignalPermissions[keyof typeof CanSignalPermissions]
   | typeof AnomalyDetectionPermissions[keyof typeof AnomalyDetectionPermissions]

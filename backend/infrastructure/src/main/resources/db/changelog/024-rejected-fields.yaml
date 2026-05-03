@@ -1,0 +1,48 @@
+databaseChangeLog:
+  - changeSet:
+      id: 024-rejected-fields-safety
+      author: anomaly-detection
+      comment: "M-1: Add rejected_at/rejected_by to safety_trace_records for accurate audit trail"
+      changes:
+        - addColumn:
+            tableName: safety_trace_records
+            columns:
+              - column:
+                  name: rejected_at
+                  type: DATETIME(6)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: rejected_by
+                  type: BINARY(16)
+                  constraints:
+                    nullable: true
+
+  - changeSet:
+      id: 024-rejected-fields-oem-approvals
+      author: anomaly-detection
+      comment: "M-1: Add rejected_at/rejected_by to oem_approvals for accurate audit trail"
+      changes:
+        - addColumn:
+            tableName: oem_approvals
+            columns:
+              - column:
+                  name: rejected_at
+                  type: DATETIME(6)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: rejected_by
+                  type: BINARY(16)
+                  constraints:
+                    nullable: true
+
+  - changeSet:
+      id: 024-fix-if-impact-default
+      author: anomaly-detection
+      comment: "LOW-1: Correct if_impact column default from UNCHANGED to UNKNOWN"
+      changes:
+        - addDefaultValue:
+            tableName: safety_trace_records
+            columnName: if_impact
+            defaultValue: UNKNOWN

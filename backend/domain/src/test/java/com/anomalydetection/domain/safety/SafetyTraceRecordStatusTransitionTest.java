@@ -3,23 +3,51 @@ package com.anomalydetection.domain.safety;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.anomalydetection.shared.safety.IfImpact;
+import java.time.LocalDate;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
 class SafetyTraceRecordStatusTransitionTest {
 
   private SafetyTraceRecord newRecord() {
-    return new SafetyTraceRecord(UUID.randomUUID(), "AEB Safety Trace", "ASIL-D");
+    return new SafetyTraceRecord(UUID.randomUUID(), "AEB Safety Trace", "ASIL-D", "SAFETY-FEAT-001");
+  }
+
+  /** Helper: move ifImpact out of UNKNOWN so submit() proceeds without deadline fields. */
+  private void confirmIfImpact(SafetyTraceRecord r) {
+    r.setIfImpact(IfImpact.UNCHANGED);
+  }
+
+  // ── Constructor validation ────────────────────────────────────────────────
+
+  @Test
+  void constructorThrowsWhenFeatureIdIsNull() {
+    assertThatThrownBy(() -> new SafetyTraceRecord(UUID.randomUUID(), "name", "QM", null))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("feature_id");
   }
 
   @Test
-  void newRecordStartsAsDraft() {
-    assertThat(newRecord().getApprovalStatus()).isEqualTo(SafetyApprovalStatus.DRAFT);
+  void constructorThrowsWhenFeatureIdIsBlank() {
+    assertThatThrownBy(() -> new SafetyTraceRecord(UUID.randomUUID(), "name", "QM", "  "))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("feature_id");
   }
+
+  @Test
+  void newRecordStartsAsDraftWithUnknownIfImpact() {
+    var r = newRecord();
+    assertThat(r.getApprovalStatus()).isEqualTo(SafetyApprovalStatus.DRAFT);
+    assertThat(r.getIfImpact()).isEqualTo(IfImpact.UNKNOWN);
+  }
+
+  // ── submit() guards ───────────────────────────────────────────────────────
 
   @Test
   void submitTransitionsDraftToSubmitted() {
     var record = newRecord();
+    confirmIfImpact(record);
     record.submit(UUID.randomUUID());
     assertThat(record.getApprovalStatus()).isEqualTo(SafetyApprovalStatus.SUBMITTED);
     assertThat(record.getSubmittedAt()).isNotNull();
@@ -28,6 +56,7 @@ class SafetyTraceRecordStatusTransitionTest {
   @Test
   void submitThrowsWhenNotDraft() {
     var record = newRecord();
+    confirmIfImpact(record);
     record.submit(UUID.randomUUID());
     assertThatThrownBy(() -> record.submit(UUID.randomUUID()))
         .isInstanceOf(IllegalStateException.class)
@@ -35,8 +64,29 @@ class SafetyTraceRecordStatusTransitionTest {
   }
 
   @Test
+  void submitThrowsWhenIfImpactUnknownAndDeadlineMissing() {
+    var record = newRecord();
+    // ifImpact defaults to UNKNOWN but no unknownUntil / unknownOwnerId set
+    assertThatThrownBy(() -> record.submit(UUID.randomUUID()))
+        .isInstanceOf(IllegalStateException.class)
+        .hasMessageContaining("UNKNOWN");
+  }
+
+  @Test
+  void submitSucceedsWhenIfImpactUnknownWithDeadlineAndOwner() {
+    var record = newRecord();
+    record.setUnknownUntil(LocalDate.now().plusDays(30));
+    record.setUnknownOwnerId(UUID.randomUUID());
+    record.submit(UUID.randomUUID());
+    assertThat(record.getApprovalStatus()).isEqualTo(SafetyApprovalStatus.SUBMITTED);
+  }
+
+  // ── Review / Approve / Reject ─────────────────────────────────────────────
+
+  @Test
   void startReviewTransitionsSubmittedToUnderReview() {
     var record = newRecord();
+    confirmIfImpact(record);
     record.submit(UUID.randomUUID());
     record.startReview();
     assertThat(record.getApprovalStatus()).isEqualTo(SafetyApprovalStatus.UNDER_REVIEW);
@@ -53,6 +103,7 @@ class SafetyTraceRecordStatusTransitionTest {
   @Test
   void approveFromSubmittedTransitionsToApproved() {
     var record = newRecord();
+    confirmIfImpact(record);
     UUID reviewer = UUID.randomUUID();
     record.submit(UUID.randomUUID());
     record.approve(reviewer, "LGTM");
@@ -65,6 +116,7 @@ class SafetyTraceRecordStatusTransitionTest {
   @Test
   void approveFromUnderReviewTransitionsToApproved() {
     var record = newRecord();
+    confirmIfImpact(record);
     record.submit(UUID.randomUUID());
     record.startReview();
     record.approve(UUID.randomUUID(), "Reviewed OK");
@@ -82,6 +134,7 @@ class SafetyTraceRecordStatusTransitionTest {
   @Test
   void approveThrowsWhenAlreadyApproved() {
     var record = newRecord();
+    confirmIfImpact(record);
     record.submit(UUID.randomUUID());
     record.approve(UUID.randomUUID(), "first approval");
     assertThatThrownBy(() -> record.approve(UUID.randomUUID(), "double approval"))
@@ -91,6 +144,7 @@ class SafetyTraceRecordStatusTransitionTest {
   @Test
   void rejectFromSubmittedTransitionsToRejected() {
     var record = newRecord();
+    confirmIfImpact(record);
     record.submit(UUID.randomUUID());
     record.reject(UUID.randomUUID(), "Does not meet ASIL-D requirements");
     assertThat(record.getApprovalStatus()).isEqualTo(SafetyApprovalStatus.REJECTED);
@@ -108,6 +162,7 @@ class SafetyTraceRecordStatusTransitionTest {
   @Test
   void updateAsilLevelReopensApprovedRecordToDraft() {
     var record = newRecord();
+    confirmIfImpact(record);
     record.submit(UUID.randomUUID());
     record.approve(UUID.randomUUID(), "ok");
     record.updateAsilLevel("ASIL-B");

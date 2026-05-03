@@ -1,4 +1,4 @@
-package com.anomalydetection.domain.safety;
+package com.anomalydetection.shared.safety;
 
 /** Publication scope for traceability records (automotive-safety skill). */
 public enum TraceabilityScope {

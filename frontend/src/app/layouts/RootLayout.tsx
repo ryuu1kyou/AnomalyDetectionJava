@@ -3,15 +3,16 @@ import type { MenuProps } from 'antd'
 import { Link, Outlet, useLocation } from 'react-router-dom'
 import { usePermissions } from '../../shared/auth/usePermissions'
 import {
-  CanSignalPermissions,
+  AdminPermissions,
   AnomalyDetectionPermissions,
+  CanSignalPermissions,
   DetectionTemplatePermissions,
-  ProjectPermissions,
-  SafetyTracePermissions,
+  IntegrationPermissions,
   KnowledgeBasePermissions,
   OemTraceabilityPermissions,
+  ProjectPermissions,
+  SafetyTracePermissions,
   SimilarPatternSearchPermissions,
-  IntegrationPermissions,
 } from '../../shared/auth/permissions'
 import type { ReactNode } from 'react'
 
@@ -65,10 +66,10 @@ const ALL_MENU_DEFS: MenuDef[] = [
     key: 'admin',
     label: '管理',
     children: [
-      { key: '/audit-log', label: <Link to="/audit-log">監査ログ</Link> },
-      { key: '/settings', label: <Link to="/settings">設定</Link> },
-      { key: '/features', label: <Link to="/features">フィーチャーフラグ</Link> },
-      { key: '/permissions', label: <Link to="/permissions">権限管理</Link> },
+      { key: '/audit-log', label: <Link to="/audit-log">監査ログ</Link>, permission: AdminPermissions.AUDIT_LOG },
+      { key: '/settings', label: <Link to="/settings">設定</Link>, permission: AdminPermissions.SETTINGS },
+      { key: '/features', label: <Link to="/features">フィーチャーフラグ</Link>, permission: AdminPermissions.FEATURES },
+      { key: '/permissions', label: <Link to="/permissions">権限管理</Link>, permission: AdminPermissions.PERMISSIONS },
     ],
   },
 ]

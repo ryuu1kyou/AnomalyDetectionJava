@@ -1,4 +1,4 @@
-package com.anomalydetection.domain.safety;
+package com.anomalydetection.shared.safety;
 
 /** Interface impact classification — TOP2 field (automotive-safety skill). */
 public enum IfImpact {
