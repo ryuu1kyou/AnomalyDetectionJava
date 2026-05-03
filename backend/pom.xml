@@ -36,7 +36,7 @@
 
     <!-- Quality tool versions -->
     <jacoco.version>0.8.12</jacoco.version>
-    <spotless.version>2.43.0</spotless.version>
+    <spotless.version>3.4.0</spotless.version>
     <spotbugs.version>4.8.6.4</spotbugs.version>
     <google-java-format.version>1.22.0</google-java-format.version>
 
