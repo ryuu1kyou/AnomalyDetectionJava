@@ -49,3 +49,7 @@ databaseChangeLog:
       file: classpath:db/changelog/023-traceability-keys.yaml
   - include:
       file: classpath:db/changelog/024-rejected-fields.yaml
+  - include:
+      file: classpath:db/changelog/025-decision-ledger.yaml
+  - include:
+      file: classpath:db/changelog/026-safety-trace-ext-fields.yaml

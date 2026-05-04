@@ -1,6 +1,7 @@
 package com.anomalydetection.domain.safety;
 
 import com.anomalydetection.domain.base.FullAuditedEntity;
+import com.anomalydetection.shared.safety.ChangeType;
 import com.anomalydetection.shared.safety.DocSyncStatus;
 import com.anomalydetection.shared.safety.IfImpact;
 import com.anomalydetection.shared.safety.TraceabilityScope;
@@ -138,6 +139,20 @@ public class SafetyTraceRecord extends FullAuditedEntity<UUID> {
   @Column(name = "applicability", length = 255)
   private String applicability;
 
+  // ── Extended traceability keys (M9-A: automotive-safety skill 03/06) ─────
+  @Column(name = "svn_rev", length = 64)
+  private String svnRev;
+
+  @Column(name = "module_id", length = 64)
+  private String moduleId;
+
+  @Column(name = "if_version", length = 64)
+  private String ifVersion;
+
+  @Enumerated(EnumType.STRING)
+  @Column(name = "change_type", length = 32)
+  private ChangeType changeType;
+
   protected SafetyTraceRecord() {}
 
   public SafetyTraceRecord(UUID id, String name, String asilLevel, String featureId) {
@@ -206,6 +221,26 @@ public class SafetyTraceRecord extends FullAuditedEntity<UUID> {
     if (this.approvalStatus == SafetyApprovalStatus.APPROVED) {
       this.approvalStatus = SafetyApprovalStatus.DRAFT;
     }
+  }
+
+  /** Replaces the verifications JSON blob; caller is responsible for serialization. */
+  public void updateVerifications(String verificationsJson) {
+    this.verifications = verificationsJson;
+  }
+
+  /** Replaces the validations JSON blob; caller is responsible for serialization. */
+  public void updateValidations(String validationsJson) {
+    this.validations = validationsJson;
+  }
+
+  /** Replaces the lifecycle-events JSON blob; caller is responsible for serialization. */
+  public void updateLifecycleEvents(String lifecycleEventsJson) {
+    this.lifecycleEvents = lifecycleEventsJson;
+  }
+
+  /** Replaces the change-requests JSON blob; caller is responsible for serialization. */
+  public void updateChangeRequests(String changeRequestsJson) {
+    this.changeRequests = changeRequestsJson;
   }
 
   @Override
@@ -302,4 +337,16 @@ public class SafetyTraceRecord extends FullAuditedEntity<UUID> {
 
   public String getApplicability() { return applicability; }
   public void setApplicability(String applicability) { this.applicability = applicability; }
+
+  public String getSvnRev() { return svnRev; }
+  public void setSvnRev(String svnRev) { this.svnRev = svnRev; }
+
+  public String getModuleId() { return moduleId; }
+  public void setModuleId(String moduleId) { this.moduleId = moduleId; }
+
+  public String getIfVersion() { return ifVersion; }
+  public void setIfVersion(String ifVersion) { this.ifVersion = ifVersion; }
+
+  public ChangeType getChangeType() { return changeType; }
+  public void setChangeType(ChangeType changeType) { this.changeType = changeType; }
 }

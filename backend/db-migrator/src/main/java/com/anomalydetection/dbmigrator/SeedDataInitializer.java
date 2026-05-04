@@ -10,6 +10,7 @@ import com.anomalydetection.contracts.integration.IntegrationPermissions;
 import com.anomalydetection.contracts.knowledgebase.KnowledgeBasePermissions;
 import com.anomalydetection.contracts.oemtraceability.OemTraceabilityPermissions;
 import com.anomalydetection.contracts.projects.ProjectPermissions;
+import com.anomalydetection.contracts.safety.DecisionLedgerPermissions;
 import com.anomalydetection.contracts.safety.SafetyTracePermissions;
 import com.anomalydetection.contracts.similarpatternsearch.SimilarPatternSearchPermissions;
 import com.anomalydetection.domain.cansspecification.CanSystemCategory;
@@ -217,6 +218,12 @@ public class SeedDataInitializer implements ApplicationRunner {
         SafetyTracePermissions.DELETE,
         SafetyTracePermissions.APPROVE,
         SafetyTracePermissions.AUDIT_EXPORT,
+        // Decision Ledger (M9-A)
+        DecisionLedgerPermissions.DEFAULT,
+        DecisionLedgerPermissions.CREATE,
+        DecisionLedgerPermissions.EDIT,
+        DecisionLedgerPermissions.DELETE,
+        DecisionLedgerPermissions.APPROVE,
         // KnowledgeBase
         KnowledgeBasePermissions.DEFAULT,
         KnowledgeBasePermissions.CREATE,

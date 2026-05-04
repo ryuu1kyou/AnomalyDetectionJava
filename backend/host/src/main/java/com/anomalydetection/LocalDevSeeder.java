@@ -1,6 +1,18 @@
 package com.anomalydetection;
 
 import com.anomalydetection.application.permissions.PermissionManager;
+import com.anomalydetection.contracts.anomalydetection.AnomalyDetectionPermissions;
+import com.anomalydetection.contracts.cansignals.CanSignalPermissions;
+import com.anomalydetection.contracts.cansspecification.CanSpecificationPermissions;
+import com.anomalydetection.contracts.detectiontemplates.DetectionTemplatePermissions;
+import com.anomalydetection.contracts.identity.IdentityPermissions;
+import com.anomalydetection.contracts.integration.IntegrationPermissions;
+import com.anomalydetection.contracts.knowledgebase.KnowledgeBasePermissions;
+import com.anomalydetection.contracts.oemtraceability.OemTraceabilityPermissions;
+import com.anomalydetection.contracts.projects.ProjectPermissions;
+import com.anomalydetection.contracts.safety.DecisionLedgerPermissions;
+import com.anomalydetection.contracts.safety.SafetyTracePermissions;
+import com.anomalydetection.contracts.similarpatternsearch.SimilarPatternSearchPermissions;
 import com.anomalydetection.domain.identity.Role;
 import com.anomalydetection.domain.identity.RoleRepository;
 import com.anomalydetection.domain.identity.User;
@@ -122,18 +134,55 @@ class LocalDevSeeder implements ApplicationRunner {
 
   private void seedAdminPermissions() {
     var perms = java.util.List.of(
-        com.anomalydetection.contracts.identity.IdentityPermissions.USERS_VIEW,
-        com.anomalydetection.contracts.identity.IdentityPermissions.USERS_CREATE,
-        com.anomalydetection.contracts.identity.IdentityPermissions.USERS_EDIT,
-        com.anomalydetection.contracts.identity.IdentityPermissions.USERS_DELETE,
-        com.anomalydetection.contracts.identity.IdentityPermissions.ROLES_VIEW,
-        com.anomalydetection.contracts.identity.IdentityPermissions.ROLES_CREATE,
-        com.anomalydetection.contracts.identity.IdentityPermissions.ROLES_EDIT,
-        com.anomalydetection.contracts.identity.IdentityPermissions.ROLES_DELETE,
-        com.anomalydetection.contracts.identity.IdentityPermissions.TENANTS_VIEW,
-        com.anomalydetection.contracts.identity.IdentityPermissions.TENANTS_CREATE,
-        com.anomalydetection.contracts.identity.IdentityPermissions.TENANTS_EDIT,
-        com.anomalydetection.contracts.identity.IdentityPermissions.TENANTS_DELETE
+        // Identity
+        IdentityPermissions.USERS_VIEW, IdentityPermissions.USERS_CREATE,
+        IdentityPermissions.USERS_EDIT, IdentityPermissions.USERS_DELETE,
+        IdentityPermissions.ROLES_VIEW, IdentityPermissions.ROLES_CREATE,
+        IdentityPermissions.ROLES_EDIT, IdentityPermissions.ROLES_DELETE,
+        IdentityPermissions.TENANTS_VIEW, IdentityPermissions.TENANTS_CREATE,
+        IdentityPermissions.TENANTS_EDIT, IdentityPermissions.TENANTS_DELETE,
+        // CanSignal
+        CanSignalPermissions.DEFAULT, CanSignalPermissions.CREATE,
+        CanSignalPermissions.EDIT, CanSignalPermissions.DELETE,
+        // CanSpecification
+        CanSpecificationPermissions.DEFAULT, CanSpecificationPermissions.CREATE,
+        CanSpecificationPermissions.EDIT, CanSpecificationPermissions.DELETE,
+        // DetectionTemplates
+        DetectionTemplatePermissions.DEFAULT, DetectionTemplatePermissions.CREATE,
+        DetectionTemplatePermissions.EDIT, DetectionTemplatePermissions.DELETE,
+        // AnomalyDetection
+        AnomalyDetectionPermissions.LOGIC_DEFAULT, AnomalyDetectionPermissions.LOGIC_CREATE,
+        AnomalyDetectionPermissions.LOGIC_EDIT, AnomalyDetectionPermissions.LOGIC_DELETE,
+        AnomalyDetectionPermissions.LOGIC_APPROVE,
+        AnomalyDetectionPermissions.RESULT_DEFAULT, AnomalyDetectionPermissions.RESULT_CREATE,
+        AnomalyDetectionPermissions.RESULT_EDIT, AnomalyDetectionPermissions.RESULT_DELETE,
+        // Projects
+        ProjectPermissions.DEFAULT, ProjectPermissions.CREATE,
+        ProjectPermissions.EDIT, ProjectPermissions.DELETE,
+        ProjectPermissions.MANAGE_MEMBERS, ProjectPermissions.MANAGE_MILESTONES,
+        // Safety
+        SafetyTracePermissions.DEFAULT, SafetyTracePermissions.CREATE,
+        SafetyTracePermissions.EDIT, SafetyTracePermissions.DELETE,
+        SafetyTracePermissions.APPROVE, SafetyTracePermissions.AUDIT_EXPORT,
+        // Decision Ledger (M9-A)
+        DecisionLedgerPermissions.DEFAULT, DecisionLedgerPermissions.CREATE,
+        DecisionLedgerPermissions.EDIT, DecisionLedgerPermissions.DELETE,
+        DecisionLedgerPermissions.APPROVE,
+        // KnowledgeBase
+        KnowledgeBasePermissions.DEFAULT, KnowledgeBasePermissions.CREATE,
+        KnowledgeBasePermissions.EDIT, KnowledgeBasePermissions.DELETE,
+        KnowledgeBasePermissions.PUBLISH,
+        // OemTraceability
+        OemTraceabilityPermissions.APPROVAL_DEFAULT, OemTraceabilityPermissions.APPROVAL_CREATE,
+        OemTraceabilityPermissions.APPROVAL_MANAGE,
+        OemTraceabilityPermissions.CUSTOMIZATION_DEFAULT, OemTraceabilityPermissions.CUSTOMIZATION_CREATE,
+        OemTraceabilityPermissions.CUSTOMIZATION_MANAGE,
+        // SimilarPatternSearch
+        SimilarPatternSearchPermissions.DEFAULT, SimilarPatternSearchPermissions.SEARCH_SIGNALS,
+        SimilarPatternSearchPermissions.COMPARE_TEST_DATA,
+        // Integration
+        IntegrationPermissions.DEFAULT, IntegrationPermissions.CREATE,
+        IntegrationPermissions.MANAGE, IntegrationPermissions.IMPORT_DATA
     );
     for (var perm : perms) {
       permissionManager.grantToRole(perm, "admin", null);

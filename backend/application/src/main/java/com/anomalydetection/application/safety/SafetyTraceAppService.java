@@ -1,5 +1,11 @@
 package com.anomalydetection.application.safety;
 
+import com.anomalydetection.contracts.safety.AddChangeRequestDto;
+import com.anomalydetection.contracts.safety.AddValidationDto;
+import com.anomalydetection.contracts.safety.AddVerificationDto;
+import com.anomalydetection.contracts.safety.ChangeRequestRecordDto;
+import com.anomalydetection.contracts.safety.LifecycleEventDto;
+import com.anomalydetection.contracts.safety.RecordLifecycleEventDto;
 import com.anomalydetection.contracts.safety.SafetyTracePermissions;
 import com.anomalydetection.contracts.safety.CreateSafetyTraceLinkDto;
 import com.anomalydetection.contracts.safety.CreateSafetyTraceRecordDto;
@@ -7,7 +13,12 @@ import com.anomalydetection.contracts.safety.GetSafetyTraceInput;
 import com.anomalydetection.contracts.safety.SafetyTraceLinkDto;
 import com.anomalydetection.contracts.safety.SafetyTraceRecordDto;
 import com.anomalydetection.contracts.safety.UpdateSafetyTraceRecordDto;
+import com.anomalydetection.contracts.safety.ValidationRecordDto;
+import com.anomalydetection.contracts.safety.VerificationRecordDto;
+import com.anomalydetection.shared.safety.ChangeApprovalStatus;
+import com.anomalydetection.shared.safety.LifecycleStage;
 import com.anomalydetection.domain.safety.SafetyApprovalStatus;
+import com.anomalydetection.shared.safety.ChangeType;
 import com.anomalydetection.shared.safety.DocSyncStatus;
 import com.anomalydetection.shared.safety.IfImpact;
 import com.anomalydetection.shared.safety.TraceabilityScope;
@@ -102,7 +113,8 @@ public class SafetyTraceAppService {
     applyTraceabilityFields(record, input.featureId(), input.decisionId(), input.changeId(),
         input.ifImpact(), input.unknownUntil(), input.unknownOwnerId(),
         input.designRationale(), input.assumption(), input.constraintText(),
-        input.docSyncStatus(), input.scope(), input.applicability());
+        input.docSyncStatus(), input.scope(), input.applicability(),
+        input.svnRev(), input.moduleId(), input.ifVersion(), input.changeType());
     return toDto(recordRepo.save(record));
   }
 
@@ -123,7 +135,8 @@ public class SafetyTraceAppService {
       applyTraceabilityFields(r, input.featureId(), input.decisionId(), input.changeId(),
           input.ifImpact(), input.unknownUntil(), input.unknownOwnerId(),
           input.designRationale(), input.assumption(), input.constraintText(),
-          input.docSyncStatus(), input.scope(), input.applicability());
+          input.docSyncStatus(), input.scope(), input.applicability(),
+          input.svnRev(), input.moduleId(), input.ifVersion(), input.changeType());
       return toDto(recordRepo.save(r));
     });
   }
@@ -162,6 +175,121 @@ public class SafetyTraceAppService {
     return recordRepo.findById(id).map(r -> {
       r.reject(null, comments);
       return toDto(recordRepo.save(r));
+    });
+  }
+
+  // --- V&V / Lifecycle ---
+
+  @Transactional(readOnly = true)
+  @PreAuthorize("hasAuthority('" + SafetyTracePermissions.DEFAULT + "')")
+  public List<VerificationRecordDto> getVerifications(UUID recordId) {
+    return recordRepo.findById(recordId)
+        .map(r -> parseVerifications(r.getVerifications()))
+        .orElse(List.of());
+  }
+
+  @PreAuthorize("hasAuthority('" + SafetyTracePermissions.EDIT + "')")
+  public Optional<VerificationRecordDto> addVerification(UUID recordId, AddVerificationDto input) {
+    return recordRepo.findById(recordId).map(r -> {
+      var list = new java.util.ArrayList<>(parseVerifications(r.getVerifications()));
+      var entry = new VerificationRecordDto(
+          UUID.randomUUID().toString(),
+          input.stage(),
+          input.method(),
+          input.result(),
+          null,
+          java.time.Instant.now().toString(),
+          input.toolRef(),
+          input.notes());
+      list.add(entry);
+      r.updateVerifications(toJsonAny(list));
+      recordRepo.save(r);
+      return entry;
+    });
+  }
+
+  @Transactional(readOnly = true)
+  @PreAuthorize("hasAuthority('" + SafetyTracePermissions.DEFAULT + "')")
+  public List<ValidationRecordDto> getValidations(UUID recordId) {
+    return recordRepo.findById(recordId)
+        .map(r -> parseValidations(r.getValidations()))
+        .orElse(List.of());
+  }
+
+  @PreAuthorize("hasAuthority('" + SafetyTracePermissions.EDIT + "')")
+  public Optional<ValidationRecordDto> addValidation(UUID recordId, AddValidationDto input) {
+    return recordRepo.findById(recordId).map(r -> {
+      var list = new java.util.ArrayList<>(parseValidations(r.getValidations()));
+      var entry = new ValidationRecordDto(
+          UUID.randomUUID().toString(),
+          input.stage(),
+          input.scenario(),
+          input.outcome(),
+          null,
+          java.time.Instant.now().toString(),
+          input.testRef(),
+          input.notes());
+      list.add(entry);
+      r.updateValidations(toJsonAny(list));
+      recordRepo.save(r);
+      return entry;
+    });
+  }
+
+  @Transactional(readOnly = true)
+  @PreAuthorize("hasAuthority('" + SafetyTracePermissions.DEFAULT + "')")
+  public List<LifecycleEventDto> getLifecycleEvents(UUID recordId) {
+    return recordRepo.findById(recordId)
+        .map(r -> parseLifecycleEvents(r.getLifecycleEvents()))
+        .orElse(List.of());
+  }
+
+  @PreAuthorize("hasAuthority('" + SafetyTracePermissions.EDIT + "')")
+  public Optional<LifecycleEventDto> recordLifecycleEvent(
+      UUID recordId, RecordLifecycleEventDto input) {
+    return recordRepo.findById(recordId).map(r -> {
+      var list = new java.util.ArrayList<>(parseLifecycleEvents(r.getLifecycleEvents()));
+      var entry = new LifecycleEventDto(
+          UUID.randomUUID().toString(),
+          input.stage(),
+          input.eventType(),
+          input.description(),
+          java.time.Instant.now().toString(),
+          null);
+      list.add(entry);
+      r.updateLifecycleEvents(toJsonAny(list));
+      recordRepo.save(r);
+      return entry;
+    });
+  }
+
+  @Transactional(readOnly = true)
+  @PreAuthorize("hasAuthority('" + SafetyTracePermissions.DEFAULT + "')")
+  public List<ChangeRequestRecordDto> getChangeRequests(UUID recordId) {
+    return recordRepo.findById(recordId)
+        .map(r -> parseChangeRequests(r.getChangeRequests()))
+        .orElse(List.of());
+  }
+
+  @PreAuthorize("hasAuthority('" + SafetyTracePermissions.EDIT + "')")
+  public Optional<ChangeRequestRecordDto> addChangeRequest(
+      UUID recordId, AddChangeRequestDto input) {
+    return recordRepo.findById(recordId).map(r -> {
+      var list = new java.util.ArrayList<>(parseChangeRequests(r.getChangeRequests()));
+      var entry = new ChangeRequestRecordDto(
+          UUID.randomUUID().toString(),
+          input.changeId(),
+          input.changeType(),
+          input.description(),
+          input.rationale(),
+          ChangeApprovalStatus.DRAFT,
+          null,
+          java.time.Instant.now().toString(),
+          null, null, null);
+      list.add(entry);
+      r.updateChangeRequests(toJsonAny(list));
+      recordRepo.save(r);
+      return entry;
     });
   }
 
@@ -228,7 +356,12 @@ public class SafetyTraceAppService {
         r.getConstraintText(),
         r.getDocSyncStatus(),
         r.getScope(),
-        r.getApplicability());
+        r.getApplicability(),
+        // Extended traceability keys (M9-A)
+        r.getSvnRev(),
+        r.getModuleId(),
+        r.getIfVersion(),
+        r.getChangeType());
   }
 
   private void applyTraceabilityFields(
@@ -236,9 +369,8 @@ public class SafetyTraceAppService {
       String featureId, String decisionId, String changeId,
       IfImpact ifImpact, String unknownUntil, String unknownOwnerId,
       String designRationale, String assumption, String constraintText,
-      DocSyncStatus docSyncStatus,
-      TraceabilityScope scope,
-      String applicability) {
+      DocSyncStatus docSyncStatus, TraceabilityScope scope, String applicability,
+      String svnRev, String moduleId, String ifVersion, ChangeType changeType) {
     if (featureId != null) r.setFeatureId(featureId);
     if (decisionId != null) r.setDecisionId(decisionId);
     if (changeId != null) r.setChangeId(changeId);
@@ -251,6 +383,10 @@ public class SafetyTraceAppService {
     if (docSyncStatus != null) r.setDocSyncStatus(docSyncStatus);
     if (scope != null) r.setScope(scope);
     if (applicability != null) r.setApplicability(applicability);
+    if (svnRev != null) r.setSvnRev(svnRev);
+    if (moduleId != null) r.setModuleId(moduleId);
+    if (ifVersion != null) r.setIfVersion(ifVersion);
+    if (changeType != null) r.setChangeType(changeType);
   }
 
   private SafetyTraceLinkDto toLinkDto(SafetyTraceLink l) {
@@ -277,6 +413,50 @@ public class SafetyTraceAppService {
       return objectMapper.writeValueAsString(list);
     } catch (Exception e) {
       return "[]";
+    }
+  }
+
+  private String toJsonAny(Object obj) {
+    try {
+      return objectMapper.writeValueAsString(obj);
+    } catch (Exception e) {
+      return "[]";
+    }
+  }
+
+  private List<VerificationRecordDto> parseVerifications(String json) {
+    if (json == null || json.isBlank()) return List.of();
+    try {
+      return objectMapper.readValue(json, new TypeReference<List<VerificationRecordDto>>() {});
+    } catch (Exception e) {
+      return List.of();
+    }
+  }
+
+  private List<ValidationRecordDto> parseValidations(String json) {
+    if (json == null || json.isBlank()) return List.of();
+    try {
+      return objectMapper.readValue(json, new TypeReference<List<ValidationRecordDto>>() {});
+    } catch (Exception e) {
+      return List.of();
+    }
+  }
+
+  private List<LifecycleEventDto> parseLifecycleEvents(String json) {
+    if (json == null || json.isBlank()) return List.of();
+    try {
+      return objectMapper.readValue(json, new TypeReference<List<LifecycleEventDto>>() {});
+    } catch (Exception e) {
+      return List.of();
+    }
+  }
+
+  private List<ChangeRequestRecordDto> parseChangeRequests(String json) {
+    if (json == null || json.isBlank()) return List.of();
+    try {
+      return objectMapper.readValue(json, new TypeReference<List<ChangeRequestRecordDto>>() {});
+    } catch (Exception e) {
+      return List.of();
     }
   }
 

@@ -17,7 +17,17 @@
       "Bash(Get-ChildItem -Path \"C:\\\\work\\\\tool\\\\net\\\\AnomalyDetection\" -Force)",
       "Bash(Select-Object Name, PSIsContainer)",
       "Bash(Format-Table -AutoSize)",
-      "Read(//c/work/tool/net/AnomalyDetection/**)"
+      "Read(//c/work/tool/net/AnomalyDetection/**)",
+      "Read(//c/c/work/tool/net/AnomalyDetectionJava/frontend/**)",
+      "Bash(Get-Content \"c:\\\\work\\\\tool\\\\net\\\\AnomalyDetectionJava\\\\backend\\\\pom.xml\")",
+      "Bash(Select-String \"<module>\")",
+      "Bash(Get-Content \"c:\\\\work\\\\tool\\\\net\\\\AnomalyDetectionJava\\\\backend\\\\host\\\\pom.xml\")",
+      "Bash(Select-String \"dependency|artifactId\")",
+      "Bash(./mvnw -B -pl host,db-migrator -am compile -q)",
+      "Read(//c/Users/ryuu1/.claude/projects/c--work-tool-net-AnomalyDetectionJava/memory/**)",
+      "Bash(./mvnw clean *)",
+      "Bash(javap -c \"c:\\\\work\\\\tool\\\\net\\\\AnomalyDetectionJava\\\\backend\\\\host\\\\target\\\\classes\\\\com\\\\anomalydetection\\\\LocalDevSeeder.class\")",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); [print\\(k,v\\) for k,v in d.get\\('scripts',{}\\).items\\(\\)]\")"
     ],
     "additionalDirectories": [
       "\\tmp"

@@ -1,12 +1,20 @@
 package com.anomalydetection.web.safety;
 
 import com.anomalydetection.application.safety.SafetyTraceAppService;
+import com.anomalydetection.contracts.safety.AddChangeRequestDto;
+import com.anomalydetection.contracts.safety.AddValidationDto;
+import com.anomalydetection.contracts.safety.AddVerificationDto;
+import com.anomalydetection.contracts.safety.ChangeRequestRecordDto;
 import com.anomalydetection.contracts.safety.CreateSafetyTraceLinkDto;
 import com.anomalydetection.contracts.safety.CreateSafetyTraceRecordDto;
 import com.anomalydetection.contracts.safety.GetSafetyTraceInput;
+import com.anomalydetection.contracts.safety.LifecycleEventDto;
+import com.anomalydetection.contracts.safety.RecordLifecycleEventDto;
 import com.anomalydetection.contracts.safety.SafetyTraceLinkDto;
 import com.anomalydetection.contracts.safety.SafetyTraceRecordDto;
 import com.anomalydetection.contracts.safety.UpdateSafetyTraceRecordDto;
+import com.anomalydetection.contracts.safety.ValidationRecordDto;
+import com.anomalydetection.contracts.safety.VerificationRecordDto;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.http.ResponseEntity;
@@ -87,6 +95,56 @@ public class SafetyTraceController {
       @PathVariable UUID id,
       @RequestParam String comments) {
     return appService.reject(id, comments).map(ResponseEntity::ok)
+        .orElseGet(() -> ResponseEntity.notFound().build());
+  }
+
+  // ── V&V / Lifecycle endpoints (M9-B) ────────────────────────────────────────
+
+  @GetMapping("/{id}/verifications")
+  public List<VerificationRecordDto> getVerifications(@PathVariable UUID id) {
+    return appService.getVerifications(id);
+  }
+
+  @PostMapping("/{id}/verifications")
+  public ResponseEntity<VerificationRecordDto> addVerification(
+      @PathVariable UUID id, @RequestBody AddVerificationDto input) {
+    return appService.addVerification(id, input).map(ResponseEntity::ok)
+        .orElseGet(() -> ResponseEntity.notFound().build());
+  }
+
+  @GetMapping("/{id}/validations")
+  public List<ValidationRecordDto> getValidations(@PathVariable UUID id) {
+    return appService.getValidations(id);
+  }
+
+  @PostMapping("/{id}/validations")
+  public ResponseEntity<ValidationRecordDto> addValidation(
+      @PathVariable UUID id, @RequestBody AddValidationDto input) {
+    return appService.addValidation(id, input).map(ResponseEntity::ok)
+        .orElseGet(() -> ResponseEntity.notFound().build());
+  }
+
+  @GetMapping("/{id}/lifecycle-events")
+  public List<LifecycleEventDto> getLifecycleEvents(@PathVariable UUID id) {
+    return appService.getLifecycleEvents(id);
+  }
+
+  @PostMapping("/{id}/lifecycle-events")
+  public ResponseEntity<LifecycleEventDto> recordLifecycleEvent(
+      @PathVariable UUID id, @RequestBody RecordLifecycleEventDto input) {
+    return appService.recordLifecycleEvent(id, input).map(ResponseEntity::ok)
+        .orElseGet(() -> ResponseEntity.notFound().build());
+  }
+
+  @GetMapping("/{id}/change-requests")
+  public List<ChangeRequestRecordDto> getChangeRequests(@PathVariable UUID id) {
+    return appService.getChangeRequests(id);
+  }
+
+  @PostMapping("/{id}/change-requests")
+  public ResponseEntity<ChangeRequestRecordDto> addChangeRequest(
+      @PathVariable UUID id, @RequestBody AddChangeRequestDto input) {
+    return appService.addChangeRequest(id, input).map(ResponseEntity::ok)
         .orElseGet(() -> ResponseEntity.notFound().build());
   }
 

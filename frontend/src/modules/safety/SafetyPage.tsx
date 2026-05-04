@@ -21,15 +21,16 @@ import { apiFetch } from '../../shared/api/apiFetch'
 interface SafetyTraceRecord {
   id: string
   name: string
-  entityId: string
-  entityType: string
   asilLevel: string
-  status: string
-  title: string
-  description: string
-  requirementId: string
-  safetyGoalId: string
-  // Traceability keys (Phase B)
+  approvalStatus: string
+  description?: string
+  requirementId?: string
+  safetyGoalId?: string
+  hazardAnalysisId?: string
+  detectionLogicId?: string
+  projectId?: string
+  version?: string
+  // Traceability keys
   featureId?: string
   decisionId?: string
   changeId?: string
@@ -42,6 +43,11 @@ interface SafetyTraceRecord {
   docSyncStatus?: string
   scope?: string
   applicability?: string
+  // M9-A extended fields
+  svnRev?: string
+  moduleId?: string
+  ifVersion?: string
+  changeType?: string
 }
 
 interface OemApprovalDto {
@@ -96,9 +102,10 @@ const ASIL_OPTIONS = [
   { value: 'ASIL_D', label: 'ASIL D' },
 ]
 
-const STATUS_COLOR: Record<string, string> = {
+const APPROVAL_STATUS_COLOR: Record<string, string> = {
   DRAFT: 'default',
   SUBMITTED: 'processing',
+  UNDER_REVIEW: 'processing',
   APPROVED: 'success',
   REJECTED: 'error',
 }
@@ -192,9 +199,9 @@ export default function SafetyPage() {
   const { data: featureTraceability, isLoading: traceLoading } = useFeatureTraceability(traceabilityFeatureId)
 
   const displayed = filter
-    ? data.filter(r => r.name?.toLowerCase().includes(filter.toLowerCase()) ||
-        r.asilLevel?.includes(filter.toUpperCase()) ||
-        r.featureId?.toLowerCase().includes(filter.toLowerCase()))
+    ? data.filter(r => r.name?.toLowerCase().includes(filter.toLowerCase())
+        || r.asilLevel?.includes(filter.toUpperCase())
+        || r.featureId?.toLowerCase().includes(filter.toLowerCase()))
     : data
 
   function openDetail(row: SafetyTraceRecord) {
@@ -216,7 +223,7 @@ export default function SafetyPage() {
   function openEdit(row: SafetyTraceRecord) {
     setEditing(row)
     form.setFieldsValue({
-      name: row.name ?? row.title,
+      name: row.name,
       description: row.description,
       requirementId: row.requirementId,
       safetyGoalId: row.safetyGoalId,
@@ -253,13 +260,13 @@ export default function SafetyPage() {
   const columns: ColumnsType<SafetyTraceRecord> = [
     { title: '名称', dataIndex: 'name',
       render: (v: string, r: SafetyTraceRecord) => (
-        <Button type="link" onClick={() => openDetail(r)}>{v ?? r.title}</Button>
+        <Button type="link" onClick={() => openDetail(r)}>{v}</Button>
       ),
     },
     { title: 'ASIL', dataIndex: 'asilLevel', width: 90,
       render: v => <Tag color="orange">{v}</Tag> },
-    { title: 'ステータス', dataIndex: 'status', width: 120,
-      render: v => <Tag color={STATUS_COLOR[v] ?? 'default'}>{v}</Tag> },
+    { title: 'ステータス', dataIndex: 'approvalStatus', width: 120,
+      render: v => <Tag color={APPROVAL_STATUS_COLOR[v] ?? 'default'}>{v}</Tag> },
     {
       title: 'feature_id', dataIndex: 'featureId', width: 180,
       render: (v: string | undefined) => v ? (
@@ -286,7 +293,7 @@ export default function SafetyPage() {
       render: (_: unknown, row: SafetyTraceRecord) => (
         <Space>
           <Button size="small" onClick={() => openEdit(row)}>編集</Button>
-          {row.status === 'DRAFT' && (
+          {row.approvalStatus === 'DRAFT' && (
             <Button size="small" type="default"
               loading={submitMutation.isPending}
               onClick={() => submitMutation.mutate(row.id)}>
@@ -402,8 +409,8 @@ export default function SafetyPage() {
         title="Safety トレーサビリティ詳細" width={560}>
         {detailRecord && (
           <Space direction="vertical" size="middle" style={{ display: 'flex' }}>
-            <Typography.Title level={4}>{detailRecord.name ?? detailRecord.title}</Typography.Title>
-            <Tag color={STATUS_COLOR[detailRecord.status] ?? 'default'}>{detailRecord.status}</Tag>
+            <Typography.Title level={4}>{detailRecord.name}</Typography.Title>
+            <Tag color={APPROVAL_STATUS_COLOR[detailRecord.approvalStatus] ?? 'default'}>{detailRecord.approvalStatus}</Tag>
             <Tag color="orange">{detailRecord.asilLevel}</Tag>
 
             <Card title="基本情報" size="small">
@@ -476,7 +483,7 @@ export default function SafetyPage() {
                     { title: 'OEM', dataIndex: 'oemCode' },
                     { title: '種別', dataIndex: 'type' },
                     { title: 'ステータス', dataIndex: 'status',
-                      render: v => <Tag color={STATUS_COLOR[v] ?? 'default'}>{v}</Tag> },
+                      render: v => <Tag color={APPROVAL_STATUS_COLOR[v] ?? 'default'}>{v}</Tag> },
                     { title: 'decision_id', dataIndex: 'decisionId',
                       render: v => v ?? '—' },
                     { title: '適用範囲', dataIndex: 'applicability',

@@ -1,6 +1,7 @@
 package com.anomalydetection.contracts.safety;
 
 import com.anomalydetection.domain.safety.SafetyApprovalStatus;
+import com.anomalydetection.shared.safety.ChangeType;
 import com.anomalydetection.shared.safety.DocSyncStatus;
 import com.anomalydetection.shared.safety.IfImpact;
 import com.anomalydetection.shared.safety.TraceabilityScope;
@@ -35,4 +36,9 @@ public record SafetyTraceRecordDto(
     String constraintText,
     DocSyncStatus docSyncStatus,
     TraceabilityScope scope,
-    String applicability) {}
+    String applicability,
+    // Extended traceability keys (M9-A)
+    String svnRev,
+    String moduleId,
+    String ifVersion,
+    ChangeType changeType) {}

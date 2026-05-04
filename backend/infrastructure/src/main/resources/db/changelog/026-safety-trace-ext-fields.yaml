@@ -1,0 +1,29 @@
+databaseChangeLog:
+  - changeSet:
+      id: 026-safety-trace-ext-fields
+      author: anomaly-detection
+      comment: "M9-A: Add svn_rev, module_id, if_version, change_type to safety_trace_records (automotive-safety skill 03/06)"
+      changes:
+        - addColumn:
+            tableName: safety_trace_records
+            columns:
+              - column:
+                  name: svn_rev
+                  type: VARCHAR(64)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: module_id
+                  type: VARCHAR(64)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: if_version
+                  type: VARCHAR(64)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: change_type
+                  type: VARCHAR(32)
+                  constraints:
+                    nullable: true

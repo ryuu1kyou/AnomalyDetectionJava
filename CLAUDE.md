@@ -1,197 +1,330 @@
-# AnomalyDetectionJava — プロジェクトメモ (CLAUDE.md)
+# AnomalyDetectionJava — Claude Code 向け開発コンテキスト
 
-このリポジトリは、`.NET 10 + ABP vNext 9.3.5` で実装された CAN 異常検出管理システム
-([../AnomalyDetection](../AnomalyDetection)) を **Java / Spring Boot + React** に
-**完全機能パリティで移植**するためのリポジトリです。
-既存の .NET 版とは独立した GitHub リポジトリとして運用される想定であり、
-`.NET 版のソースには影響を与えません`。
-
-> 本ファイルは、ブレインストーミング段階で合意した設計前提を記録したものです。
-> 詳細な設計書 (spec) は [docs/superpowers/specs/](docs/superpowers/specs/) に配置します。
-> 実装計画 (plan) は spec 承認後に作成されます。
+このファイルは **Claude Code (AI) が開発を引き継ぐ際の参照情報**です。  
+プロジェクトの現状・設計判断・落とし穴・次の開発ポイントをまとめます。
 
 ---
 
-## 1. プロジェクト目的
+## 1. プロジェクト概要
 
-- **完全機能パリティ移植**: 既存の .NET / ABP 版と同等のドメインと機能をすべて Java 側で再現する
-  - 主要ドメイン: `CanSignal`, `CanAnomalyDetectionLogic`, `AnomalyDetectionResult`,
-    `CanSpecification`, `DetectionTemplate`, `Project`, `VehiclePhase`,
-    `Safety (ISO 26262)`, `KnowledgeBase`, `OemTraceability`, `SimilarPatternSearch`,
-    `Integration` ほか
-  - 横断機能: マルチテナント、認証/認可、権限管理、監査ログ、設定管理、機能管理、
-    バックグラウンドジョブ、ローカライズ、BLOB ストレージ、ドメインイベント
-- 自動車業界 (OEM 複数社) のマルチテナント Web アプリ
-- ISO 26262 機能安全のトレーサビリティを維持
+`.NET 10 + ABP vNext 9.3.5 + Angular` で実装された CAN 異常検出管理システムを  
+**Java 21 + Spring Boot 3.3 + React 19** に完全機能パリティ移植するリポジトリ。
 
-## 2. 技術スタック (合意済み)
+- 自動車業界 (OEM 複数社) 向けマルチテナント Web アプリ
+- ISO 26262 機能安全トレーサビリティを維持
+- 個人開発 (1 名)、Windows 11 + ホスト直接実行 (Docker 不使用)
+- 将来的に独立 GitHub リポジトリとして公開予定
 
-### 2.1 バックエンド
+---
+
+## 2. 現在の実装状態
+
+**全マイルストーン完了 (M0〜M9)** — 2026-05-04 時点
+
+| マイルストーン | 内容 | 状態 |
+|--------------|------|------|
+| M0 | Maven マルチモジュール基盤・Liquibase・ArchUnit | 完了 |
+| M1 | Identity + Multi-Tenancy | 完了 |
+| M2 | Spring Authorization Server (OAuth2/OIDC) | 完了 |
+| M3 | 横断機能 (Permissions / Settings / Features / Audit / Jobs / BLOB / i18n) | 完了 |
+| M4 | コアドメイン 10 モジュール REST API | 完了 |
+| M5 | フロントエンド基盤 (Zustand / TanStack Query / react-oidc-context) | 完了 |
+| M6 | フロントエンド全機能ページ (CRUD + 認可ガード) | 完了 |
+| M7 | 統合テスト整備 (87 件全 PASS) | 完了 |
+| M8 | トレーサビリティ強化 + GitHub Actions CI/CD | 完了 |
+| M9 | Decision Ledger / V&V 記録 / CrossOEM レポート | 完了 |
+
+テスト: **87 件** (バックエンド統合テスト、MariaDB4j 使用)
+
+---
+
+## 3. 技術スタック
+
+### バックエンド
 
 | 領域 | 採用技術 | ABP 対応 |
-| --- | --- | --- |
-| 言語 / ランタイム | Java 21 (LTS) | .NET 10 |
-| ビルドツール | **Maven** マルチモジュール | (.NET) `*.sln` + `*.csproj` |
-| Web / モジュール | Spring Boot 3.3 + **Spring Modulith** | ABP モジュール |
-| 認可サーバ | **Spring Authorization Server** (組み込み) | OpenIddict |
-| リソースサーバ | Spring Security OAuth2 Resource Server | Volo.Abp.AspNetCore.Authentication |
-| ORM | Spring Data JPA + Hibernate 6 | Entity Framework Core |
-| DB マイグレーション | **Liquibase** | EF Core Migrations |
+|------|---------|---------|
+| 言語 | Java 21 LTS (Eclipse Temurin) | .NET 10 |
+| ビルド | Maven 3.9 マルチモジュール (Wrapper 同梱) | .sln |
+| Web | Spring Boot 3.3 + Spring Modulith | ABP モジュール |
+| 認可サーバ | Spring Authorization Server (組み込み) | OpenIddict |
+| リソースサーバ | Spring Security OAuth2 Resource Server | — |
+| ORM | Spring Data JPA + Hibernate 6 | EF Core |
+| DB マイグレーション | Liquibase (YAML 形式、001〜026 changeset) | EF Core Migrations |
 | マッピング | MapStruct | AutoMapper |
-| 監査 | Spring Data JPA Auditing + Hibernate Envers | `IAuditedObject` / `AuditLog` |
-| マルチテナント | Hibernate `@Filter` + AOP で `TenantId` 自動注入 | `IMultiTenant` |
-| イベント | Spring Modulith Application Events | Volo.Abp.EventBus |
+| 監査 | Spring Data JPA Auditing + Hibernate Envers | IAuditedObject |
+| マルチテナント | Hibernate `@Filter` + AOP で TenantId 自動注入 | IMultiTenant |
+| イベント | Spring Modulith ApplicationEvents | Volo.Abp.EventBus |
 | バックグラウンドジョブ | Quartz Scheduler + ShedLock | Volo.Abp.BackgroundJobs |
-| 機能管理 | Togglz + 自前 `Feature` テーブル | Volo.Abp.FeatureManagement |
-| 設定管理 | 自前 `Setting` テーブル + キャッシュ | Volo.Abp.SettingManagement |
-| キャッシュ | Spring Cache + Caffeine (将来 Redis 対応) | Volo.Abp.Caching |
-| BLOB ストレージ | Spring Content (DB BLOB / 将来 S3) | Volo.Abp.BlobStoring.Database |
-| i18n | Spring `MessageSource` + `LocaleResolver` | Volo.Abp.Localization |
-| WebSocket | Spring WebSocket + STOMP | SignalR |
-| API ドキュメント | springdoc-openapi (OpenAPI 3) | ABP Swagger |
-| テスト | JUnit 5 + **MariaDB4j** (組み込み MariaDB / Docker 不要) + ArchUnit | xUnit + ABP TestBase |
-| ロギング | SLF4J + Logback + Logstash JSON | Serilog |
+| 機能管理 | Togglz + feature_values テーブル | Volo.Abp.FeatureManagement |
+| 設定管理 | settings テーブル + Caffeine キャッシュ | Volo.Abp.SettingManagement |
+| テスト DB | MariaDB4j (組み込み MariaDB、Docker 不要) | xUnit + InMemory |
+| テスト | JUnit 5 + AssertJ + MockMvc + ArchUnit | xUnit |
 
-### 2.2 フロントエンド
+### フロントエンド
 
 | 領域 | 採用技術 |
-| --- | --- |
+|------|---------|
 | ビルド | Vite |
-| 言語 | TypeScript |
-| フレームワーク | React 18+ |
-| UI ライブラリ | **Ant Design** |
-| 状態管理 | Zustand |
-| サーバ状態 / データフェッチ | TanStack Query |
-| HTTP クライアント | OpenAPI 自動生成クライアント |
+| 言語 | TypeScript strict |
+| UI フレームワーク | React 19 |
+| UI ライブラリ | Ant Design 6.x |
+| 状態管理 | Zustand 5 |
+| サーバ状態 | TanStack Query 5 |
+| HTTP クライアント | openapi-fetch + 手書き型 (将来 api:generate で置換) |
 | ルーティング | React Router |
+| 認証 | react-oidc-context (PKCE) |
+| フォーム | React Hook Form 7 + Zod 3 |
+| テスト | Vitest + React Testing Library + MSW |
 
-### 2.3 データベース
+### データベース
 
-- **MySQL 8.x** (シングル DB + `TenantId` カラムフィルタ方式)
-- ABP デフォルトのマルチテナント戦略 (Single Database, Multi-Tenant filter) を踏襲
-- OEM 共通ナレッジは `TenantId IS NULL` で表現
-- 開発者ローカルでは PC に **MySQL 8 を直接インストール**して使用 (Docker 不使用)
+- MySQL 8.x (開発: ホスト直接。接続: localhost:3306 / root / 123)
+- テスト: MariaDB4j (JVM 内起動、テストごと独立)
+- マルチテナント: Single DB + `tenant_id` カラムフィルタ方式
 
-### 2.4 認証認可方針
+---
 
-- **Spring Authorization Server** を Spring Boot に組み込み、OpenIddict 相当の
-  OAuth2 / OIDC 認可サーバを自前で持つ (.NET 版と同一構成)
-- リソースサーバはモノリス内で同居 (将来的に切り出し可能な構成)
+## 4. プロジェクト構造
 
-## 3. プロジェクト構造 (Maven マルチモジュール)
-
-```text
+```
 AnomalyDetectionJava/
 ├── backend/
-│   ├── pom.xml                            # 親 POM (parent, packaging=pom)
-│   ├── domain-shared/                     # ABP Domain.Shared 相当
-│   ├── domain/                            # ABP Domain 相当
-│   ├── application-contracts/             # ABP Application.Contracts 相当
-│   ├── application/                       # ABP Application 相当
-│   ├── infrastructure/                    # ABP EntityFrameworkCore 相当
-│   ├── web/                               # ABP HttpApi 相当
-│   ├── auth-server/                       # Spring Authorization Server
-│   ├── host/                              # ABP HttpApi.Host 相当 (起動 jar)
-│   └── db-migrator/                       # ABP DbMigrator 相当
-├── frontend/                              # React + Vite + TS + Ant Design
-│   └── src/
-│       ├── app/                           # ルーティング・レイアウト・プロバイダ
-│       ├── modules/                       # 機能モジュール (cansignals, projects, …)
-│       ├── shared/                        # 共通 UI / hook / API client
-│       ├── api/                           # OpenAPI 自動生成クライアント
-│       └── stores/                        # Zustand store
-├── docs/
-│   └── superpowers/specs/                 # 設計書 (spec)
-└── README.md
+│   ├── domain-shared/         # 列挙型・定数・共通例外 (Spring 依存なし)
+│   ├── domain/                # エンティティ・ドメインサービス・Repository I/F
+│   ├── application-contracts/ # DTO・AppService I/F・権限定数クラス
+│   ├── application/           # AppService 実装・MapStruct Mapper・@PreAuthorize
+│   ├── infrastructure/        # JPA 実装・Liquibase・SecurityConfiguration
+│   ├── web/                   # @RestController・例外ハンドラ・OpenAPI
+│   ├── auth-server/           # Spring Authorization Server
+│   ├── host/                  # 起動アプリ・LocalDevSeeder (@Profile("local"))
+│   └── db-migrator/           # SeedDataInitializer (独立 CLI)
+└── frontend/
+    └── src/
+        ├── app/               # router.tsx・RootLayout・AuthGuard・HomePage
+        ├── modules/           # 各ドメインの画面 (SafetyPage.tsx 等)
+        ├── shared/
+        │   ├── api/           # apiFetch.ts (openapi-fetch ラッパー)
+        │   └── auth/          # usePermissions.ts・RequirePermission.tsx・permissions.ts
+        └── api/               # schema.d.ts (api:generate で生成)
 ```
 
-### 3.1 モジュール依存方向 (循環禁止)
+### モジュール依存方向
 
-```text
-domain-shared
-   ↑
-domain
-   ↑
-application-contracts
-   ↑
-application ──→ infrastructure ──→ host
-   ↑                                ↑
-   └──── web ────────────────────────┘
-                                  ↑
-                       auth-server, db-migrator も host で組み立て
+```
+domain-shared → domain → application-contracts → application
+                                                      ↓
+                                            infrastructure → host
+                                                  ↑         ↑
+                                                 web ────────┘
 ```
 
-横断的な依存制約は ArchUnit テストで検証する。
+`web → infrastructure` の直接参照は ArchUnit テストで禁止。
 
-### 3.2 Spring Modulith 機能モジュール一覧
+---
 
-| モジュール | ABP 対応 |
-| --- | --- |
-| `cansignals` | CanSignals |
-| `anomalydetection` | CanAnomalyDetectionLogic + 検出結果 |
-| `cansspecification` | CanSpecification |
-| `detectiontemplates` | DetectionTemplates |
-| `projects` | Projects |
-| `safety` | Safety (ISO 26262) |
-| `knowledgebase` | KnowledgeBase |
-| `oemtraceability` | OemTraceability |
-| `similarpatternsearch` | SimilarPatternSearch |
-| `integration` | Integration |
-| `auditlogging` | AuditLogging |
-| `multitenancy` | MultiTenancy |
-| `identity` | Identity (ユーザ / ロール / 組織) |
-| `permissions` | Volo.Abp.PermissionManagement |
-| `settings` | Volo.Abp.SettingManagement |
-| `features` | Volo.Abp.FeatureManagement |
-| `backgroundjobs` | Volo.Abp.BackgroundJobs |
-| `blobstoring` | Volo.Abp.BlobStoring.Database |
+## 5. 重要な設計判断と落とし穴
 
-## 4. リポジトリ運用方針
+### 5.1 権限シードの 2 箇所管理
 
-- **既存 .NET 版とは独立した GitHub リポジトリ**として運用する
-- 本フォルダ (`AnomalyDetectionJava/`) は将来そのまま新リポジトリのルートとなる
-- `.NET 版のソース・履歴には一切影響を与えない`
-- 仕様参照は `../AnomalyDetection/` の README とソースコードを参考にする
+**必須ルール**: 新しい権限定数を追加したら **必ず両方**を更新する。
 
-## 5. 開発ステータス
+| ファイル | プロファイル | 用途 |
+|---------|------------|------|
+| `host/LocalDevSeeder.java` | `@Profile("local")` のみ | ローカル開発起動時に毎回実行 |
+| `db-migrator/SeedDataInitializer.java` | プロファイル制限なし | 独立 CLI として実行 |
 
-最終更新: 2026-04-29
+`LocalDevSeeder` を更新し忘れると、ローカル起動後にドメインページが blank になる  
+(`RequirePermission` が null を返すため — いわゆる「スケルトン画面」)。
 
-### 5.1 マイルストーン進捗
+**権限追加後のフロー:**
+1. 権限定数クラス (`XxxPermissions.java`) に定数追加
+2. `XxxPermissionDefinitionContributor.java` に追加
+3. `LocalDevSeeder.seedAdminPermissions()` に追加
+4. `SeedDataInitializer.seedAdminRolePermissions()` に追加
+5. `.\mvnw.cmd clean install -DskipTests` (新クラス追加後は必ず clean)
+6. バックエンド再起動
+7. **ログアウト → 再ログイン** (JWT を更新するため必須)
+8. `frontend/src/shared/auth/permissions.ts` にも定数を追加
 
-| フェーズ | 状態 |
-| --- | --- |
-| ブレインストーミング (要件・前提整理) | **完了** |
-| 設計書 (spec) 執筆 | **完了** |
-| 実装計画 (plan) 作成 | M0〜M2 **完了** / M3〜M7 **未着手** (M4〜M7 は計画なしで直接実装) |
-| **M0** (基盤セットアップ) | **完了** (tag: `m0-baseline`) |
-| **M1** (Identity + Multi-Tenancy) | **完了** (tag: `m1-identity-multitenancy`) |
-| **M2** (Spring Authorization Server) | **完了** (tag: `m2-spring-authorization-server`) |
-| **M3** (横断機能: Permissions / Settings / Features / Audit / Jobs / BLOB / i18n) | **完了** (全横断機能バックエンド実装済。REST API: AuditLog/Settings/Features/Permissions/BlobStoring。フロントエンド管理ページ: 監査ログ/設定/フィーチャーフラグ/権限管理。85テスト全 PASS) |
-| **M4** (コアドメイン移植) | **完了** (全10モジュール: CanSignal, CanSignalSpecification, DetectionTemplates, AnomalyDetection, Projects, Safety, KnowledgeBase, OemTraceability, SimilarPatternSearch, Integration) |
-| **M5** (フロントエンド基盤) | **完了** (Zustand 5 / TanStack Query 5 / react-oidc-context 3 / Zod 3 / React Hook Form 7 / openapi-fetch 追加済。AuthProvider・QueryProvider・stores・api/client・shared/schemas・/callback ルート実装済) |
-| **M6** (フロントエンド機能ページ) | **完了** (CAN信号・検出テンプレート・異常検出ロジック CRUD、インテグレーションエンドポイント一覧、Safety/KnowledgeBase/OemTraceability/CanSignalSpec 完全 CRUD 実装済。TanStack Query + apiFetch パターン統一) |
-| **M7** (システム/性能テスト) | **完了** (91テスト全 PASS。ドメイン単体[19]: CanSignalTest・AnomalyDetectionLogicStatusTransitionTest・SimilarPatternSearchServiceTest / アプリサービス単体[12]: CanSignalAppServiceTest・AnomalyDetectionLogicAppServiceTest / API 統合[60]: CanSignalApiTest・DetectionTemplateApiTest・AnomalyDetectionLogicApiTest・SoftDeleteApiTest・ProjectsApiTest(6) 他。MapStruct @Mapper 導入・テストモジュール分散配置・Vitest+RTL+MSW フロントエンドテスト基盤・AuditLog HTTP ステータス捕捉・全ドメイン権限シード・i18n メッセージ拡充) |
-| **M8** (automotive-safety トレーサビリティ強化 + CI/CD) | **完了** (Phase A: Safety/OemApproval/OemCustomization に状態遷移ガード・トレサビキー `feature_id`/`decision_id`/`if_impact`/`doc_sync_status` 等12列追加・Liquibase changeset 023・統合テスト8本。Phase B: `feature_id` 横断検索 API `GET /api/app/traceability/feature/{featureId}` + 統合テスト2本。Phase C-1: フロントエンド `usePermissions` / `RequirePermission` / メニュー権限フィルタ + ルート保護。Phase C-2: Safety 詳細 Drawer・OEM 突合 Drawer・トレサビバッジ。Phase D: GitHub Actions `backend-ci`/`frontend-ci`/`codeql`・Dependabot・PR Template) |
+### 5.2 Maven ビルドの注意点
 
-### 5.2 設計上の留意事項 (技術的負債候補)
+```powershell
+# 新しいクラスを追加した後は必ず clean
+.\mvnw.cmd clean install -DskipTests
 
-- `projectsApi.ts` の手書き型 → バックエンド起動後に `npm run api:generate` で `src/api/schema.d.ts` 生成型へ置換 (現状は fetch + 手書き型で動作中)
+# clean なしだと stale な .class ファイルが残り ClassNotFoundException が発生
+# 特に application-contracts に新クラスを追加した場合に頻発
+# spring-boot:run は ~/.m2/ の JAR を使うため、install しただけでは不十分な場合がある
+```
 
-### 5.3 進行順序の逸脱メモ
+### 5.3 JWT と権限の関係
 
-Projects ドメインは本実装済み (JPA Repository + Domain Aggregate + REST API + フロントエンド Create/Update/Delete + ProjectsApiTest 6テスト)。暫定 mock は完全に置き換え完了。
+- `JwtTokenCustomizer` が JWT の `permissions` クレームにロールの権限一覧を埋め込む
+- `SecurityConfiguration.jwtAuthConverter()` が `permissions` クレームを `GrantedAuthority` として抽出
+- フロント `usePermissions.ts` が `access_token` の `permissions` クレームを直接パース
+- **権限変更は次回ログイン時の JWT 発行まで反映されない**
 
-### 5.4 将来課題 (今回スコープ外、後続で対応)
+### 5.4 フィールド名の注意
 
-- **Docker / docker-compose 構成** (個人開発のため当面はホスト直接実行)
-- **本番デプロイ構成** (Nginx リバースプロキシ、TLS、サービス化、監視)
-- **Redis キャッシュ・S3 BLOB ストレージへの切替**
-- **Kafka / RabbitMQ などの外部メッセージブローカ連携**
+| エンティティ | 正しいフィールド | 間違えやすい名前 |
+|------------|----------------|----------------|
+| `SafetyTraceRecord` | `approvalStatus` | `status` |
+| `OemApproval` | `status` | — |
+| `AnomalyDetectionLogic` | `status` | — |
 
-## 6. 参考資料
+`SafetyTraceRecord` だけ `approvalStatus` であることに注意。
 
-- 既存 .NET 版 README: [../AnomalyDetection/README.md](../AnomalyDetection/README.md)
-- 既存 .NET 版ソリューション: [../AnomalyDetection/AnomalyDetection.sln](../AnomalyDetection/AnomalyDetection.sln)
-- 設計書: [docs/superpowers/specs/](docs/superpowers/specs/)
-- 実装計画 (M0): [docs/superpowers/plans/2026-04-25-m0-baseline-setup.md](docs/superpowers/plans/2026-04-25-m0-baseline-setup.md)
+### 5.5 LocalDevSeeder vs SeedDataInitializer の分離
+
+`db-migrator` モジュールは `host` の classpath に含まれない。  
+`SeedDataInitializer` は `host` 起動時には **実行されない**。  
+ローカル開発では `LocalDevSeeder` が全シードを担う。
+
+### 5.6 apiFetch パターン (フロント)
+
+```typescript
+// GET
+const data = await apiFetch<T[]>('/app/some-path')
+
+// POST
+const result = await apiFetch<T>('/app/some-path', {
+  method: 'POST',
+  body: JSON.stringify(input),
+})
+```
+
+`/api/` プレフィックスは Vite のプロキシ設定で自動付与。  
+`apiFetch` は 401 で自動ログアウト、他エラーは `Error` をスロー。
+
+---
+
+## 6. 認証・認可フロー
+
+```
+React SPA
+  → /oauth2/authorize (PKCE challenge)
+  → Spring Authorization Server (ログイン画面)
+  → 認可コード → /oauth2/token
+  → JWT access_token (permissions クレーム付き)
+  → Bearer ヘッダで /api/app/** を呼び出し
+  → Spring Security が JWT を検証、permissions を GrantedAuthority に変換
+  → @PreAuthorize("hasAuthority('xxx')") でメソッドレベル認可
+```
+
+フロントの権限チェック:
+- `usePermissions()` → JWT の `permissions` クレームをパース
+- `RequirePermission` → 権限なしの場合 `null` を返す (ページが空になる)
+- `RootLayout.filterMenu()` → 権限のないメニュー項目を非表示
+
+---
+
+## 7. Liquibase Changelog 構成 (現在: 001〜026)
+
+`infrastructure/src/main/resources/db/changelog/`
+
+| ファイル | 内容 |
+|---------|------|
+| 001〜010 | Identity / Multi-Tenancy / OAuth2 / Permissions / Settings / Features / Audit / Events / ShedLock / BLOB |
+| 011〜022 | ドメインテーブル (CAN信号・検出・テンプレート・異常検出・プロジェクト・Safety・KB・OEM・Integration) |
+| 023 | トレーサビリティキー列追加 (feature_id, decision_id 等) |
+| 024 | 却下理由等拡張フィールド |
+| 025 | decision_ledgers テーブル |
+| 026 | Safety 拡張フィールド (M9-A: svn_rev, module_id 等) |
+
+次の changeset は `027-xxx.yaml`、`db.changelog-master.yaml` に include を追加。
+
+---
+
+## 8. テスト構成
+
+```java
+// 統合テストの標準パターン
+@SpringBootTest(classes = AnomalyDetectionApplication.class)
+@AutoConfigureMockMvc
+@ActiveProfiles("test")
+@ExtendWith(MariaDB4jExtension.class)
+class SomeApiTest {
+  @DynamicPropertySource
+  static void registerMariaDb4j(DynamicPropertyRegistry registry) {
+    MariaDB4jExtension.register(registry);
+  }
+
+  // JWT モック
+  private static SimpleGrantedAuthority auth(String perm) {
+    return new SimpleGrantedAuthority(perm);
+  }
+  // .with(jwt().authorities(auth("SomePermission.String")))
+}
+```
+
+---
+
+## 9. フロントエンドの権限定数同期
+
+`frontend/src/shared/auth/permissions.ts` — バックエンドの権限定数と手動同期が必要。
+
+| Java クラス | フロント定数オブジェクト | 同期状態 |
+|------------|----------------------|---------|
+| `IdentityPermissions` | `AdminPermissions` | 同期済 |
+| `CanSignalPermissions` | `CanSignalPermissions` | 同期済 |
+| `SafetyTracePermissions` | `SafetyTracePermissions` | 同期済 |
+| `DecisionLedgerPermissions` | (未追加) | **要対応** |
+| `OemTraceabilityPermissions` | `OemTraceabilityPermissions` | 同期済 |
+
+---
+
+## 10. 次の開発エントリポイント
+
+### フロントエンド未実装ページ (バックエンド実装済み)
+
+1. **Decision Ledger ページ**
+   - API: `GET/POST /api/app/decision-ledger`
+   - 権限: `SafetyTrace.DecisionLedger.Default`
+   - 実装場所: `/safety` タブ追加 または `/safety/decision-ledger` ルート追加
+
+2. **OEM トレーサビリティレポートページ**
+   - API: `GET /api/app/oem-traceability-report/by-feature?featureId=xxx`
+   - 権限: `OemTraceability.Approvals.Default`
+
+3. **V&V 記録 UI**
+   - API: `GET/POST /api/app/safety-trace-records/{id}/verifications`
+   - API: `GET/POST /api/app/safety-trace-records/{id}/validations`
+   - 実装場所: Safety 詳細 Drawer 内タブ
+
+### 型定義の本番化
+
+```powershell
+cd frontend
+npm run api:generate   # backend 起動中に実行 → src/api/schema.d.ts 更新
+```
+
+各ページの手書き `interface` 型を `schema.d.ts` の型で置換する。
+
+---
+
+## 11. 将来課題
+
+| 区分 | 内容 |
+|------|------|
+| インフラ | Docker / docker-compose 化 |
+| インフラ | 本番デプロイ (Nginx + TLS + サービス化 + 監視) |
+| 性能 | Redis 分散キャッシュ (Spring Cache 差替で対応可) |
+| ストレージ | S3 互換 BLOB ストレージ (Spring Content 差替で対応可) |
+| 連携 | Kafka / RabbitMQ (Spring Modulith Externalization で対応可) |
+| テスト | Playwright E2E テスト整備 |
+| テスト | JMH パフォーマンスベンチマーク |
+| アーキテクチャ | auth-server 別プロセス分離 |
+| 監視 | Prometheus + Grafana + Alertmanager (Micrometer 経由) |
+
+---
+
+## 12. 参照ドキュメント
+
+| ドキュメント | 内容 |
+|------------|------|
+| [docs/spec.md](docs/spec.md) | アーキテクチャ詳細・DB 設計・認証フロー |
+| [docs/history.md](docs/history.md) | M0〜M9 マイルストーン遷移記録・設計決定ログ |
+| [docs/traceability.md](docs/traceability.md) | ISO 26262 トレーサビリティ運用規則 |
+| [README.md](README.md) | 起動手順・フォルダ構成・API 概要 |
+| [移植元 .NET 版](../AnomalyDetection/README.md) | 機能仕様の参照元 |

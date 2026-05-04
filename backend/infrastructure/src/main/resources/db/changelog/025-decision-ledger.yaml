@@ -1,0 +1,108 @@
+databaseChangeLog:
+  - changeSet:
+      id: 025-decision-ledger
+      author: anomaly-detection
+      comment: "M9-A: Design-intent ledger (design intent ledger) - automotive-safety skill 03"
+      changes:
+        - createTable:
+            tableName: decision_ledger
+            columns:
+              - column:
+                  name: id
+                  type: BINARY(16)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: tenant_id
+                  type: BINARY(16)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: decision_id
+                  type: VARCHAR(64)
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: what_decided
+                  type: LONGTEXT
+                  constraints:
+                    nullable: true
+              - column:
+                  name: why_decided
+                  type: LONGTEXT
+                  constraints:
+                    nullable: true
+              - column:
+                  name: assumptions
+                  type: LONGTEXT
+                  constraints:
+                    nullable: true
+              - column:
+                  name: constraints_text
+                  type: LONGTEXT
+                  constraints:
+                    nullable: true
+              - column:
+                  name: related_feature_ids
+                  type: LONGTEXT
+                  constraints:
+                    nullable: true
+              - column:
+                  name: related_module_ids
+                  type: LONGTEXT
+                  constraints:
+                    nullable: true
+              - column:
+                  name: status
+                  type: VARCHAR(16)
+                  defaultValue: DRAFT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: approved_by
+                  type: BINARY(16)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: approved_at
+                  type: DATETIME(6)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: is_deleted
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: deleted_at
+                  type: DATETIME(6)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: created_at
+                  type: DATETIME(6)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: created_by
+                  type: BINARY(16)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: last_modified_at
+                  type: DATETIME(6)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: last_modified_by
+                  type: BINARY(16)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: deleted_by
+                  type: BINARY(16)
+                  constraints:
+                    nullable: true

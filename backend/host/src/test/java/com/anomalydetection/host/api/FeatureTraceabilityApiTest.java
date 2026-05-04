@@ -91,7 +91,8 @@ class FeatureTraceabilityApiTest {
     mockMvc.perform(get(SEARCH_BASE + "/" + featureId)
         .with(jwt().authorities(
             auth("SafetyTrace.Records.Default"),
-            auth("OemTraceability.Approvals.Default"))))
+            auth("OemTraceability.Approvals.Default"),
+            auth("SafetyTrace.DecisionLedger.Default"))))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.featureId").value(featureId))
         .andExpect(jsonPath("$.safetyRecords").isArray())
@@ -110,7 +111,8 @@ class FeatureTraceabilityApiTest {
     mockMvc.perform(get(SEARCH_BASE + "/" + featureId)
         .with(jwt().authorities(
             auth("SafetyTrace.Records.Default"),
-            auth("OemTraceability.Approvals.Default"))))
+            auth("OemTraceability.Approvals.Default"),
+            auth("SafetyTrace.DecisionLedger.Default"))))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.featureId").value(featureId))
         .andExpect(jsonPath("$.safetyRecords").isArray())
